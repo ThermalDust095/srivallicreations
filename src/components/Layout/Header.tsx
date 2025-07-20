@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Settings, Heart, Search, User, LogOut } from 'lucide-react';
+import { ShoppingBag, Settings, Heart, User, LogOut, Menu, X } from 'lucide-react';
 import { useProducts } from '../../context/ProductContext';
 import { useAuth } from '../../context/AuthContext';
 import LoginForm from '../Auth/LoginForm';
@@ -12,6 +12,7 @@ const Header: React.FC = () => {
   const cartCount = getCartItemsCount();
   const [showLogin, setShowLogin] = React.useState(false);
   const [showUserMenu, setShowUserMenu] = React.useState(false);
+  const [showMobileMenu, setShowMobileMenu] = React.useState(false);
 
   const isCurrentPathAdmin = location.pathname.startsWith('/admin');
 
@@ -24,12 +25,12 @@ const Header: React.FC = () => {
             <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
               <Heart className="w-4 h-4 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">Sri Valli Creations</span>
+            <span className="text-lg sm:text-xl font-bold text-gray-900">Sri Valli Creations</span>
           </Link>
 
           {/* Navigation */}
           {!isCurrentPathAdmin && (
-            <nav className="hidden md:flex space-x-8">
+            <nav className="hidden lg:flex space-x-8">
               <Link 
                 to="/" 
                 className="text-gray-700 hover:text-pink-600 transition-colors duration-200 font-medium"
@@ -61,13 +62,10 @@ const Header: React.FC = () => {
           <div className="flex items-center space-x-4">
             {!isCurrentPathAdmin && (
               <>
-                <button className="text-gray-700 hover:text-pink-600 transition-colors duration-200">
-                  <Search className="w-5 h-5" />
-                </button>
                 {isAuthenticated() && (
                   <Link 
                     to="/cart" 
-                    className="relative text-gray-700 hover:text-pink-600 transition-colors duration-200"
+                    className="relative text-gray-700 hover:text-pink-600 transition-colors duration-200 p-2"
                   >
                     <ShoppingBag className="w-5 h-5" />
                     {cartCount > 0 && (
@@ -98,7 +96,7 @@ const Header: React.FC = () => {
                       <User className="w-4 h-4 text-white" />
                     </div>
                   )}
-                  <span className="hidden sm:inline text-sm font-medium">{user?.name}</span>
+                  <span className="hidden md:inline text-sm font-medium">{user?.name}</span>
                 </button>
 
                 {showUserMenu && (
@@ -133,16 +131,64 @@ const Header: React.FC = () => {
                 )}
               </div>
             ) : (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowLogin(true)}
+                  className="flex items-center space-x-1 px-3 sm:px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
+                >
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline text-sm">Sign In</span>
+                </button>
+              </div>
+            )}
+
+            {/* Mobile Menu Button */}
+            {!isCurrentPathAdmin && (
               <button
-                onClick={() => setShowLogin(true)}
-                className="flex items-center space-x-1 px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="lg:hidden text-gray-700 hover:text-pink-600 transition-colors duration-200 p-2"
               >
-                <User className="w-4 h-4" />
-                <span className="hidden sm:inline text-sm">Sign In</span>
+                {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             )}
           </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {!isCurrentPathAdmin && showMobileMenu && (
+          <div className="lg:hidden border-t border-gray-100 py-4">
+            <nav className="flex flex-col space-y-4">
+              <Link 
+                to="/" 
+                className="text-gray-700 hover:text-pink-600 transition-colors duration-200 font-medium px-2 py-1"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                Home
+              </Link>
+              <Link 
+                to="/products" 
+                className="text-gray-700 hover:text-pink-600 transition-colors duration-200 font-medium px-2 py-1"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                Products
+              </Link>
+              <Link 
+                to="/categories" 
+                className="text-gray-700 hover:text-pink-600 transition-colors duration-200 font-medium px-2 py-1"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                Categories
+              </Link>
+              <Link 
+                to="/about" 
+                className="text-gray-700 hover:text-pink-600 transition-colors duration-200 font-medium px-2 py-1"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                About
+              </Link>
+            </nav>
+          </div>
+        )}
       </div>
       
       {/* Login Modal */}
