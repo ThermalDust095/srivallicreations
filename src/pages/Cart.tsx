@@ -2,9 +2,11 @@ import React from 'react';
 import { Minus, Plus, Trash2, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProducts } from '../context/ProductContext';
+import { useAuth } from '../context/AuthContext';
 
 const Cart: React.FC = () => {
   const { cart, updateCartQuantity, removeFromCart, getTotalPrice, clearCart } = useProducts();
+  const { user } = useAuth();
   const total = getTotalPrice();
 
   if (cart.length === 0) {
@@ -33,7 +35,10 @@ const Cart: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+            <p className="text-gray-600 mt-1">Welcome back, {user?.name}!</p>
+          </div>
           <Link
             to="/products"
             className="flex items-center text-pink-600 hover:text-pink-700 transition-colors"

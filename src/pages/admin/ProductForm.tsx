@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Upload } from 'lucide-react';
+import { X, Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
 import { useProducts } from '../../context/ProductContext';
 import { Product } from '../../types/Product';
 
@@ -28,6 +28,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
   const [newSize, setNewSize] = useState('');
   const [newColor, setNewColor] = useState('');
   const [newImage, setNewImage] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -145,6 +146,44 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
       ...prev,
       sizeStock: { ...prev.sizeStock, [size]: Math.max(0, stock) }
     }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      // Convert to base64 for demo purposes
+      // In a real app, you would upload to a cloud service like AWS S3, Cloudinary, etc.
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageUrl = event.target?.result as string;
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images, imageUrl]
+        }));
+        setUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image');
+      setUploadingImage(false);
+    }
   };
 
   return (
@@ -335,7 +374,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
               Product Images *
             </label>
             <div className="space-y-3">
-              <div className="flex space-x-2">
+              {/* URL Input */}
+              <div className="flex space-x-2 mb-3">
                 <input
                   type="url"
                   value={newImage}
@@ -352,6 +392,40 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
                 </button>
               </div>
               
+              {/* File Upload */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-pink-400 transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
+                  disabled={uploadingImage}
+                />
+                <label
+                  htmlFor="image-upload"
+                  className={`cursor-pointer flex flex-col items-center space-y-2 ${
+                    uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                    {uploadingImage ? (
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-pink-600"></div>
+                    ) : (
+                      <ImageIcon className="w-6 h-6 text-gray-400" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      PNG, JPG, GIF up to 5MB
+                    </p>
+                  </div>
+                </label>
+              </div>
+              
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {formData.images.map((image, index) => (
                   <div key={index} className="relative group">
@@ -359,6 +433,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
                       src={image}
                       alt={`Product ${index + 1}`}
                       className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://via.placeholder.com/200x200?text=Invalid+Image';
+                      }}
                     />
                     <button
                       type="button"
