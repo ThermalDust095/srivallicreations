@@ -13,7 +13,7 @@ const Header: React.FC = () => {
   const [showLogin, setShowLogin] = React.useState(false);
   const [showUserMenu, setShowUserMenu] = React.useState(false);
 
-  const isAdmin = location.pathname.startsWith('/admin');
+  const isCurrentPathAdmin = location.pathname.startsWith('/admin');
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
@@ -28,7 +28,7 @@ const Header: React.FC = () => {
           </Link>
 
           {/* Navigation */}
-          {!isAdmin && (
+          {!isCurrentPathAdmin && (
             <nav className="hidden md:flex space-x-8">
               <Link 
                 to="/" 
@@ -59,7 +59,7 @@ const Header: React.FC = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
-            {!isAdmin && (
+            {!isCurrentPathAdmin && (
               <>
                 <button className="text-gray-700 hover:text-pink-600 transition-colors duration-200">
                   <Search className="w-5 h-5" />
