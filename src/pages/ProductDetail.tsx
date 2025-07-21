@@ -89,6 +89,7 @@ const ProductDetail: React.FC = () => {
 
     addToCart(product, selectedSize, selectedColor, quantity);
     showToast.success('Added to cart successfully!');
+    showToast.dismiss();
   };
 
   const getStockForSize = (size: string) => {

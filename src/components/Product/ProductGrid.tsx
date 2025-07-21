@@ -1,4 +1,3 @@
-import React from 'react';
 import { Product } from '../../types/Product';
 import ProductCard from './ProductCard';
 
@@ -8,6 +7,7 @@ interface ProductGridProps {
 }
 
 const ProductGrid: React.FC<ProductGridProps> = ({ products, onQuickView }) => {
+
   if (products.length === 0) {
     return (
       <div className="text-center py-12">

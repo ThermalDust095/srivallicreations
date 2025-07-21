@@ -1,6 +1,6 @@
 import React from 'react';
 import toast, { Toaster, Toast as HotToast } from 'react-hot-toast';
-import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
+import { CheckCircle, XCircle, Info, X } from 'lucide-react';
 
 // Custom toast component
 const CustomToast: React.FC<{ t: HotToast }> = ({ t }) => {

@@ -1,27 +1,51 @@
-import React, { useState, useMemo } from 'react';
-import { Filter, SlidersHorizontal } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import {SlidersHorizontal } from 'lucide-react';
 import { useProducts } from '../context/ProductContext';
 import ProductGrid from '../components/Product/ProductGrid';
-import { Product } from '../types/Product';
+import { ProductGridLoading } from '../components/Layout/Loading';
+import { fetchProducts } from '../api/apiClient';
+import showToast from '../components/UI/Toast';
 
 const ProductsPage: React.FC = () => {
-  const { products } = useProducts();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { products, setProducts } = useProducts();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [sortBy, setSortBy] = useState('name');
+  
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  
   const [showFilters, setShowFilters] = useState(false);
 
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
 
+  useEffect(() => {
+    const init = async () => {
+
+      try{
+        const {results, totalCount} = await fetchProducts(1);
+        setProducts(results);
+        setTotalCount(totalCount);
+        setIsLoading(false);
+      }
+
+      catch (err) {
+        showToast.error('Failed to fetch products');
+        console.error('Error fetching products:', err);
+        setIsLoading(false);
+      }
+    }
+
+    init();
+  }, []);
+
   const filteredProducts = useMemo(() => {
     let filtered = products.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.description.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
       const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
       
-      return matchesSearch && matchesCategory && matchesPrice;
+      return  matchesCategory && matchesPrice;
     });
 
     // Sort products
@@ -39,7 +63,7 @@ const ProductsPage: React.FC = () => {
     });
 
     return filtered;
-  }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
+  }, [products, selectedCategory, priceRange, sortBy]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -127,12 +151,13 @@ const ProductsPage: React.FC = () => {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-gray-600">
-            Showing {filteredProducts.length} of {products.length} products
+            Showing {filteredProducts.length} of {totalCount} products
           </p>
         </div>
 
+
         {/* Products Grid */}
-        <ProductGrid products={filteredProducts} />
+        {isLoading ? <ProductGridLoading/> : <ProductGrid products={filteredProducts} />}
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { Product, CartItem } from '../types/Product';
 
 interface ProductContextType {
   products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   cart: CartItem[];
   addProduct: (product: Omit<Product, 'id' | 'createdAt'>) => void;
   updateProduct: (id: string, product: Partial<Product>) => void;
@@ -18,53 +19,7 @@ interface ProductContextType {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 // Sample initial products
-const initialProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Elegant Silk Blouse',
-    description: 'A luxurious silk blouse perfect for office wear or evening occasions.',
-    price: 89.99,
-    category: 'Tops',
-    size: ['XS', 'S', 'M', 'L', 'XL'],
-    color: ['White', 'Black', 'Rose Gold'],
-    images: ['https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg'],
-    youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    inStock: true,
-    featured: true,
-    sizeStock: { 'XS': 5, 'S': 10, 'M': 15, 'L': 8, 'XL': 3 },
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Designer Midi Dress',
-    description: 'Stunning midi dress with intricate patterns, perfect for special occasions.',
-    price: 129.99,
-    category: 'Dresses',
-    size: ['XS', 'S', 'M', 'L'],
-    color: ['Navy', 'Burgundy', 'Emerald'],
-    images: ['https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg'],
-    youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    inStock: true,
-    featured: true,
-    sizeStock: { 'XS': 3, 'S': 7, 'M': 12, 'L': 5 },
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    name: 'High-Waisted Denim',
-    description: 'Premium quality high-waisted jeans with a flattering fit.',
-    price: 79.99,
-    category: 'Bottoms',
-    size: ['24', '26', '28', '30', '32'],
-    color: ['Classic Blue', 'Black', 'Light Wash'],
-    images: ['https://images.pexels.com/photos/1598507/pexels-photo-1598507.jpeg'],
-    youtubeUrl: '',
-    inStock: true,
-    featured: false,
-    sizeStock: { '24': 4, '26': 8, '28': 12, '30': 6, '32': 2 },
-    createdAt: new Date().toISOString(),
-  },
-];
+const initialProducts: Product[] = [];
 
 export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -142,6 +97,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   return (
     <ProductContext.Provider value={{
       products,
+      setProducts,
       cart,
       addProduct,
       updateProduct,

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Eye } from 'lucide-react';
 import { Product } from '../../types/Product';
 import { useProducts } from '../../context/ProductContext';
+import showToast from '../UI/Toast';
 
 interface ProductCardProps {
   product: Product;
@@ -18,6 +19,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     addToCart(product, selectedSize, selectedColor, 1);
+    showToast.success('Added to cart successfully!');
+    showToast.dismiss(); 
   };
 
   const handleQuickView = (e: React.MouseEvent) => {
@@ -81,10 +84,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
         <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={handleAddToCart}
-            className="w-full bg-white text-gray-900 py-2 px-3 sm:px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200 flex items-center justify-center space-x-2 text-sm"
+            disabled={!product.inStock} // Disable button if not in stock
+            className={`w-full py-2 px-3 sm:px-4 rounded-lg font-medium flex items-center justify-center space-x-2 text-sm transition-colors duration-200 ${
+              product.inStock
+                ? 'bg-white text-gray-900 hover:bg-gray-50'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>Quick Add</span>
+            <span>{product.inStock ? 'Quick Add' : 'Out of Stock'}</span>
           </button>
         </div>
       </div>

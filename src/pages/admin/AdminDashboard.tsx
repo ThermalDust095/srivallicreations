@@ -1,19 +1,28 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Package, Plus, Edit, Trash2, Eye, BarChart3 } from 'lucide-react';
 import { useProducts } from '../../context/ProductContext';
 import { Product } from '../../types/Product';
 import ProductForm from './ProductForm';
+import { fetchAllProducts } from '../../api/apiClient';
 
 const AdminDashboard: React.FC = () => {
-  const { products, deleteProduct } = useProducts();
+  const { products, setProducts, deleteProduct } = useProducts();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const totalProducts = products.length;
   const inStockProducts = products.filter(p => p.inStock).length;
   const featuredProducts = products.filter(p => p.featured).length;
-  // const totalValue = products.reduce((sum, p) => sum + p.price, 0);
+  const totalValue = products.reduce((sum, p) => sum + p.price, 0);
   const totalStock = products.reduce((sum, p) => sum + Object.values(p.sizeStock || {}).reduce((a, b) => a + b, 0), 0);
+
+  useEffect(() => {
+    const init = async () => {
+      const { results } = await fetchAllProducts(); // Fetch products
+      setProducts(results); 
+    }
+    init();
+    }, []);
 
   const handleDelete = (id: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
