@@ -22,6 +22,7 @@ const ProductsPage: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
+      setProducts([]); 
 
       try{
         const {results, totalCount} = await fetchProducts(1);

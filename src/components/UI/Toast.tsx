@@ -63,7 +63,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <>
     <Toaster
-      position="top-right"
+      position="top-left"
       reverseOrder={false}
       gutter={8}
       containerClassName=""
