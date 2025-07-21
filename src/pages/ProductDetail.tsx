@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Heart, ShoppingBag, Star, Truck, Shield, RefreshCw, Play } from 'lucide-react';
 import { useProducts } from '../context/ProductContext';
+import { Product } from '../types/Product';
+import { fetchProductDetail } from '../api/apiClient';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { products, addToCart } = useProducts();
-  const product = products.find(p => p.id === id);
+  // const {isLoading, setLoading} = useState<boolean>(true);
+  const [product, setProduct] = useState<Product | null>(null);
 
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
@@ -14,7 +17,25 @@ const ProductDetail: React.FC = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  if (!product) {
+  React.useEffect(() => {
+    const init = async () => {
+    // if (isLoading) {}
+    if (!id) return;
+    const data:Product = await fetchProductDetail(id);
+    setProduct(data)
+
+    if (product){
+      if (product.size.length > 0) setSelectedSize(product.size[0]);
+      if (product.color.length > 0) setSelectedColor(product.color[0]); 
+    }
+
+    }
+    init();
+  }, []);
+
+
+
+    if (!product) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -31,10 +52,6 @@ const ProductDetail: React.FC = () => {
     );
   }
 
-  React.useEffect(() => {
-    if (product.size.length > 0) setSelectedSize(product.size[0]);
-    if (product.color.length > 0) setSelectedColor(product.color[0]);
-  }, [product]);
 
   const handleAddToCart = () => {
     if (!selectedSize || !selectedColor) {
@@ -146,7 +163,7 @@ const ProductDetail: React.FC = () => {
 
               {/* Price */}
               <div className="flex items-center space-x-4">
-                <span className="text-3xl font-bold text-gray-900">${product.price}</span>
+                <span className="text-3xl font-bold text-gray-900">₹{product.price}</span>
                 {product.featured && (
                   <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                     Featured

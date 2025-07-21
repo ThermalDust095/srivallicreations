@@ -157,7 +157,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
         {/* Price and Stock */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-base sm:text-lg font-bold text-gray-900">${product.price}</span>
+            <span className="text-base sm:text-lg font-bold text-gray-900">₹{product.price}</span>
             {product.inStock ? (
               <span className="text-xs text-green-600 font-medium">In Stock</span>
             ) : (

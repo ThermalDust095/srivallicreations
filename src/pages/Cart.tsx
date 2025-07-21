@@ -90,8 +90,8 @@ const Cart: React.FC = () => {
 
                   {/* Price */}
                   <div className="text-right">
-                    <p className="text-lg font-semibold text-gray-900">${(item.price * item.quantity).toFixed(2)}</p>
-                    <p className="text-sm text-gray-500">${item.price.toFixed(2)} each</p>
+                    <p className="text-lg font-semibold text-gray-900">₹{(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="text-sm text-gray-500">₹{item.price.toFixed(2)} each</p>
                   </div>
 
                   {/* Remove Button */}
@@ -110,7 +110,7 @@ const Cart: React.FC = () => {
           <div className="bg-gray-50 p-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-lg font-semibold text-gray-900">Total</span>
-              <span className="text-2xl font-bold text-gray-900">${total.toFixed(2)}</span>
+              <span className="text-2xl font-bold text-gray-900">₹{total.toFixed(2)}</span>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4">

@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
               <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
                 <Heart className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xl font-bold">Bella Fashion</span>
+              <span className="text-xl font-bold">Sri Valli Creations</span>
             </div>
             <p className="text-gray-400 text-sm leading-6">
               Discover the latest trends in women's fashion. Quality, style, and elegance in every piece.
