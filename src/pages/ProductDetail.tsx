@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Heart, ShoppingBag, Star, Truck, Shield, RefreshCw, Play } from 'lucide-react';
+import { ArrowLeft, Heart, ShoppingBag, Truck, Shield, RefreshCw, Play } from 'lucide-react';
 import { useProducts } from '../context/ProductContext';
 import { Product } from '../types/Product';
 import { fetchProductDetail } from '../api/apiClient';
-import { CardLoading, OverlayLoading, PageLoading } from '../components/Layout/Loading';
+import { PageLoading } from '../components/Layout/Loading';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
