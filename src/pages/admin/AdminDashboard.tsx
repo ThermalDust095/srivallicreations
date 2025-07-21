@@ -12,7 +12,7 @@ const AdminDashboard: React.FC = () => {
   const totalProducts = products.length;
   const inStockProducts = products.filter(p => p.inStock).length;
   const featuredProducts = products.filter(p => p.featured).length;
-  const totalValue = products.reduce((sum, p) => sum + p.price, 0);
+  // const totalValue = products.reduce((sum, p) => sum + p.price, 0);
   const totalStock = products.reduce((sum, p) => sum + Object.values(p.sizeStock || {}).reduce((a, b) => a + b, 0), 0);
 
   const handleDelete = (id: string) => {

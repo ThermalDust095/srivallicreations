@@ -5,6 +5,7 @@ import { useProducts } from '../context/ProductContext';
 import { Product } from '../types/Product';
 import { fetchProductDetail } from '../api/apiClient';
 import { PageLoading } from '../components/Layout/Loading';
+import showToast from '../components/UI/Toast';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -76,18 +77,18 @@ const ProductDetail: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!selectedSize || !selectedColor) {
-      alert('Please select size and color');
+      showToast.error('Please select size and color');
       return;
     }
     
     const stockAvailable = product.sizeStock[selectedSize] || 0;
     if (stockAvailable < quantity) {
-      alert(`Only ${stockAvailable} items available in size ${selectedSize}`);
+      showToast.error(`Only ${stockAvailable} items available in size ${selectedSize}`);
       return;
     }
 
     addToCart(product, selectedSize, selectedColor, quantity);
-    alert('Added to cart successfully!');
+    showToast.success('Added to cart successfully!');
   };
 
   const getStockForSize = (size: string) => {

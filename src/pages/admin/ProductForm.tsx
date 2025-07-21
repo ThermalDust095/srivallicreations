@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
 import { useProducts } from '../../context/ProductContext';
 import { Product } from '../../types/Product';
+import showToast from '../../components/UI/Toast';
 
 interface ProductFormProps {
   product?: Product | null;
@@ -52,17 +53,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
     e.preventDefault();
     
     if (!formData.name || !formData.description || formData.price <= 0) {
-      alert('Please fill in all required fields');
+      showToast.error('Please fill in all required fields');
       return;
     }
 
     if (formData.size.length === 0 || formData.color.length === 0) {
-      alert('Please add at least one size and color');
+      showToast.error('Please add at least one size and color');
       return;
     }
 
     if (formData.images.length === 0) {
-      alert('Please add at least one image');
+      showToast.error('Please add at least one image');
       return;
     }
 
@@ -154,13 +155,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      showToast.error('Please select an image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
+      showToast.error('Image size should be less than 5MB');
       return;
     }
 
@@ -181,7 +182,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
       reader.readAsDataURL(file);
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Failed to upload image');
+      showToast.error('Failed to upload image');
       setUploadingImage(false);
     }
   };

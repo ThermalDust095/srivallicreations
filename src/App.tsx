@@ -16,8 +16,8 @@ function App() {
   return (
     <AuthProvider>
       <ProductProvider>
+        <ToastProvider>
         <Router>
-          <ToastProvider />
           <div className="min-h-screen flex flex-col">
             <Header />
             <main className="flex-1">
@@ -48,6 +48,7 @@ function App() {
             <Footer />
           </div>
         </Router>
+        </ToastProvider>
       </ProductProvider>
     </AuthProvider>
   );
