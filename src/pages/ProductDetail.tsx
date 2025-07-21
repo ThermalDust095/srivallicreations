@@ -4,11 +4,12 @@ import { ArrowLeft, Heart, ShoppingBag, Star, Truck, Shield, RefreshCw, Play } f
 import { useProducts } from '../context/ProductContext';
 import { Product } from '../types/Product';
 import { fetchProductDetail } from '../api/apiClient';
+import { CardLoading, OverlayLoading, PageLoading } from '../components/Layout/Loading';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { products, addToCart } = useProducts();
-  // const {isLoading, setLoading} = useState<boolean>(true);
+  const [isLoading, setLoading] = useState<boolean>(true);
   const [product, setProduct] = useState<Product | null>(null);
 
   const [selectedSize, setSelectedSize] = useState('');
@@ -19,38 +20,58 @@ const ProductDetail: React.FC = () => {
 
   React.useEffect(() => {
     const init = async () => {
-    // if (isLoading) {}
-    if (!id) return;
-    const data:Product = await fetchProductDetail(id);
-    setProduct(data)
+    if (isLoading) {
+      try{
+        if (!id) return;
+        const data:Product = await fetchProductDetail(id);
+        setProduct(data);
+        setLoading(false);
+      }
+      
+      catch(err){
+        console.error("Failed to fetch product", err);
+        setProduct(null);
+        setLoading(false);
+      }
 
-    if (product){
-      if (product.size.length > 0) setSelectedSize(product.size[0]);
-      if (product.color.length > 0) setSelectedColor(product.color[0]); 
-    }
+      finally{
+        setLoading(false);
+      }
 
-    }
+    }}
     init();
-  }, []);
+  }, [id]);
+
+  React.useEffect(() => {
+    if (product) {
+      if (product.size.length > 0) setSelectedSize(product.size[0]);
+      if (product.color.length > 0) setSelectedColor(product.color[0]);
+    }
+  }, [product]);
 
 
+    if (isLoading) {
+      return <PageLoading/>
+    }
 
-    if (!product) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Product not found</h2>
-          <Link
-            to="/products"
-            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Products
-          </Link>
-        </div>
-      </div>
-    );
-  }
+    else{
+      if (!product) {
+        return (
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Product not found</h2>
+              <Link
+                to="/products"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Products
+              </Link>
+            </div>
+          </div>
+        );
+      }
+    }
 
 
   const handleAddToCart = () => {
