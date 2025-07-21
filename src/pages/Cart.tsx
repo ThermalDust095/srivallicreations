@@ -3,11 +3,31 @@ import { Minus, Plus, Trash2, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProducts } from '../context/ProductContext';
 import { useAuth } from '../context/AuthContext';
+import DeliveryAddressForm from '../components/Forms/DeliveryAddressForm';
+import { DeliveryAddressFormData } from '../schemas/authSchemas';
+import showToast from '../components/UI/Toast';
 
 const Cart: React.FC = () => {
   const { cart, updateCartQuantity, removeFromCart, getTotalPrice, clearCart } = useProducts();
   const { user } = useAuth();
+  const [showDeliveryForm, setShowDeliveryForm] = React.useState(false);
   const total = getTotalPrice();
+
+  const handleCheckout = () => {
+    if (cart.length === 0) {
+      showToast.error('Your cart is empty');
+      return;
+    }
+    setShowDeliveryForm(true);
+  };
+
+  const handleDeliverySubmit = async (data: DeliveryAddressFormData) => {
+    // Here you would typically save the address and process the order
+    console.log('Delivery address:', data);
+    showToast.success('Order placed successfully! We will deliver to your address soon.');
+    clearCart();
+    setShowDeliveryForm(false);
+  };
 
   if (cart.length === 0) {
     return (
@@ -120,13 +140,24 @@ const Cart: React.FC = () => {
               >
                 Clear Cart
               </button>
-              <button className="flex-1 px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200">
+              <button 
+                onClick={handleCheckout}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
+              >
                 Proceed to Checkout
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Delivery Address Form */}
+      {showDeliveryForm && (
+        <DeliveryAddressForm
+          onClose={() => setShowDeliveryForm(false)}
+          onSubmit={handleDeliverySubmit}
+        />
+      )}
     </div>
   );
 };

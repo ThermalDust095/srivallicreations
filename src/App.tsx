@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ProductProvider } from './context/ProductContext';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './components/UI/Toast';
 import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
@@ -16,6 +17,7 @@ function App() {
     <AuthProvider>
       <ProductProvider>
         <Router>
+          <ToastProvider />
           <div className="min-h-screen flex flex-col">
             <Header />
             <main className="flex-1">
