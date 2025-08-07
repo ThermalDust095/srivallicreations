@@ -1,13 +1,16 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Product, CartItem } from '../types/Product';
+import { createProduct as apiCreateProduct, updateProduct as apiUpdateProduct, deleteProduct as apiDeleteProduct } from '../api/apiClient';
+import { CreateProductRequest } from '../types/apiTypes';
+import showToast from '../components/UI/Toast';
 
 interface ProductContextType {
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   cart: CartItem[];
-  addProduct: (product: Omit<Product, 'id' | 'createdAt'>) => void;
-  updateProduct: (id: string, product: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
+  addProduct: (product: Omit<Product, 'id' | 'createdAt'>) => Promise<void>;
+  updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
   addToCart: (product: Product, size: string, color: string, quantity: number) => void;
   removeFromCart: (id: string, size: string, color: string) => void;
   updateCartQuantity: (id: string, size: string, color: string, quantity: number) => void;
@@ -25,24 +28,61 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  const addProduct = (productData: Omit<Product, 'id' | 'createdAt'>) => {
-    const newProduct: Product = {
-      ...productData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-    setProducts(prev => [...prev, newProduct]);
+  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt'>) => {
+    try {
+      // Convert frontend product data to API format
+      const createRequest: CreateProductRequest = {
+        name: productData.name,
+        description: productData.description,
+        price: productData.price,
+        category: productData.category,
+        inStock: productData.inStock,
+        featured: productData.featured,
+        youtubeUrl: productData.youtubeUrl,
+        skus: Object.entries(productData.sizeStock || {}).flatMap(([size, stock]) =>
+          (productData.color || []).map(color => ({
+            size,
+            color,
+            stock: stock || 0,
+          }))
+        ),
+      };
+      
+      const newProduct = await apiCreateProduct(createRequest);
+      setProducts(prev => [...prev, newProduct]);
+      showToast.success('Product created successfully!');
+    } catch (error) {
+      console.error('Error creating product:', error);
+      showToast.error('Failed to create product. Please try again.');
+      throw error;
+    }
   };
 
-  const updateProduct = (id: string, productData: Partial<Product>) => {
-    setProducts(prev => prev.map(product => 
-      product.id === id ? { ...product, ...productData } : product
-    ));
+  const updateProduct = async (id: string, productData: Partial<Product>) => {
+    try {
+      const updatedProduct = await apiUpdateProduct(id, productData);
+      setProducts(prev => prev.map(product => 
+        product.id === id ? updatedProduct : product
+      ));
+      showToast.success('Product updated successfully!');
+    } catch (error) {
+      console.error('Error updating product:', error);
+      showToast.error('Failed to update product. Please try again.');
+      throw error;
+    }
   };
 
-  const deleteProduct = (id: string) => {
-    setProducts(prev => prev.filter(product => product.id !== id));
-    setCart(prev => prev.filter(item => item.id !== id));
+  const deleteProduct = async (id: string) => {
+    try {
+      await apiDeleteProduct(id);
+      setProducts(prev => prev.filter(product => product.id !== id));
+      setCart(prev => prev.filter(item => item.id !== id));
+      showToast.success('Product deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      showToast.error('Failed to delete product. Please try again.');
+      throw error;
+    }
   };
 
   const addToCart = (product: Product, size: string, color: string, quantity: number) => {

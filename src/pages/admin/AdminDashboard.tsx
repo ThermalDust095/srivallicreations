@@ -18,15 +18,23 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
-      const { results } = await fetchAllProducts(); // Fetch products
-      setProducts(results); 
+      try {
+        const { results } = await fetchAllProducts();
+        setProducts(results);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
     }
     init();
-    }, []);
+  }, [setProducts]);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      deleteProduct(id);
+      try {
+        await deleteProduct(id);
+      } catch (error) {
+        // Error is already handled in the context
+      }
     }
   };
 

@@ -46,7 +46,9 @@ const ProductDetail: React.FC = () => {
   React.useEffect(() => {
     if (product) {
       if (product.size.length > 0) setSelectedSize(product.size[0]);
-      if (product.color.length > 0) setSelectedColor(product.color[0]);
+      // Use colors array if available, fallback to color
+      const availableColors = product.colors || product.color || [];
+      if (availableColors.length > 0) setSelectedColor(availableColors[0]);
     }
   }, [product]);
 
@@ -231,7 +233,7 @@ const ProductDetail: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Color</h3>
                 <div className="flex items-center space-x-3">
-                  {product.color.map((color) => (
+                  {(product.colors || product.color || []).map((color) => (
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}

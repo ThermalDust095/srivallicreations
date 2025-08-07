@@ -49,7 +49,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
     }
   }, [product]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.description || formData.price <= 0) {
@@ -75,14 +75,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
       }, {} as { [size: string]: number })
     };
 
-    if (product) {
-      updateProduct(product.id, productData);
-    } else {
-      addProduct(productData);
+    try {
+      if (product) {
+        await updateProduct(product.id, productData);
+      } else {
+        await addProduct(productData);
+      }
+      onSave();
+      onClose();
+    } catch (error) {
+      // Error is already handled in the context with toast
     }
-
-    onSave();
-    onClose();
   };
 
   const addSize = () => {

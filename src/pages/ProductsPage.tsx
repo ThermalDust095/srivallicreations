@@ -22,24 +22,25 @@ const ProductsPage: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
-      setProducts([]); 
+      setIsLoading(true);
+      setProducts([]);
 
       try{
         const {results, totalCount} = await fetchProducts(1);
         setProducts(results);
         setTotalCount(totalCount);
-        setIsLoading(false);
       }
 
       catch (err) {
         showToast.error('Failed to fetch products');
         console.error('Error fetching products:', err);
+      } finally {
         setIsLoading(false);
       }
     }
 
     init();
-  }, []);
+  }, [setProducts]);
 
   const filteredProducts = useMemo(() => {
     let filtered = products.filter(product => {

@@ -18,9 +18,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    
+    // Check if product has the required data
+    if (!selectedSize || !selectedColor) {
+      showToast.error('Please select size and color');
+      return;
+    }
+    
+    const stockAvailable = product.sizeStock[selectedSize] || 0;
+    if (stockAvailable <= 0) {
+      showToast.error(`Size ${selectedSize} is out of stock`);
+      return;
+    }
+    
     addToCart(product, selectedSize, selectedColor, 1);
     showToast.success('Added to cart successfully!');
-    showToast.dismiss(); 
   };
 
   const handleQuickView = (e: React.MouseEvent) => {
