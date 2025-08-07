@@ -12,8 +12,8 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
   const [isLiked, setIsLiked] = useState(false);
-  const [selectedSize, setSelectedSize] = useState(product.size[0]);
-  const [selectedColor, setSelectedColor] = useState(product.color[0]);
+  const [selectedSize, setSelectedSize] = useState(product.size?.[0] || '');
+  const [selectedColor, setSelectedColor] = useState((product.colors || product.color)?.[0] || '');
   const { addToCart } = useProducts();
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -147,7 +147,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
         {/* Color Selection */}
         <div className="mb-2 sm:mb-3">
           <div className="flex items-center space-x-2">
-            {product.color.slice(0, 3).map((color) => (
+            {(product.colors || product.color || []).slice(0, 3).map((color) => (
               <button
                 key={color}
                 onClick={() => setSelectedColor(color)}
@@ -168,8 +168,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
                 title={color}
               />
             ))}
-            {product.color.length > 3 && (
-              <span className="text-xs text-gray-400 ml-1">+{product.color.length - 3}</span>
+            {(product.colors || product.color || []).length > 3 && (
+              <span className="text-xs text-gray-400 ml-1">+{(product.colors || product.color || []).length - 3}</span>
             )}
           </div>
         </div>

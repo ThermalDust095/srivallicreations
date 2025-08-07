@@ -33,10 +33,11 @@ const apiRequest = async (url: string, options: RequestInit = {}): Promise<Respo
     return response;
 };
 
-// Helper function for FormData requests (file uploads)
-const apiFormDataRequest = async (url: string, formData: FormData): Promise<Response> => {
+// Helper function for FormData requests (file uploads) - no Content-Type header for multipart
+const apiFormDataRequest = async (url: string, formData: FormData, method: string = 'POST'): Promise<Response> => {
     const response = await fetch(`${API_BASE_URL}${url}`, {
-        method: 'POST',
+        method: method,
+        // Don't set Content-Type header - let browser set it with boundary for multipart/form-data
         body: formData,
     });
 
@@ -99,50 +100,66 @@ export async function fetchAllProducts(): Promise<{ results: Product[], totalCou
 }
 
 export async function createProduct(productData: CreateProductRequest): Promise<Product> {
-    // If images are provided, use FormData for file upload
+    const formData = new FormData();
+    
+    // Add basic product data
+    formData.append('name', productData.name);
+    formData.append('description', productData.description);
+    formData.append('price', String(productData.price));
+    formData.append('category', productData.category);
+    formData.append('inStock', String(productData.inStock));
+    formData.append('featured', String(productData.featured));
+    
+    if (productData.youtubeUrl) {
+        formData.append('youtubeUrl', productData.youtubeUrl);
+    }
+    
+    // Add SKUs as JSON
+    if (productData.skus && productData.skus.length > 0) {
+        formData.append('skus', JSON.stringify(productData.skus));
+    }
+    
+    // Add images if provided
+    if (productData.images && productData.images.length > 0) {
+        productData.images.forEach((image) => {
+            formData.append('images', image);
+        });
+    }
+    
+    const response = await apiFormDataRequest(ENDPOINTS.CREATE_PRODUCT, formData);
+    return await response.json();
+}
+
+export async function updateProduct(productId: string, productData: Partial<UpdateProductRequest>): Promise<Product> {
+    // Check if we have images to upload
     if (productData.images && productData.images.length > 0) {
         const formData = new FormData();
         
-        // Add basic product data
-        formData.append('name', productData.name);
-        formData.append('description', productData.description);
-        formData.append('price', String(productData.price));
-        formData.append('category', productData.category);
-        formData.append('inStock', String(productData.inStock));
-        formData.append('featured', String(productData.featured));
-        
-        if (productData.youtubeUrl) {
-            formData.append('youtubeUrl', productData.youtubeUrl);
-        }
-        
-        // Add SKUs as JSON
-        if (productData.skus && productData.skus.length > 0) {
-            formData.append('skus', JSON.stringify(productData.skus));
-        }
+        // Add all fields to FormData
+        Object.keys(productData).forEach(key => {
+            if (key === 'images') return; // Handle separately
+            if (key === 'skus') {
+                formData.append(key, JSON.stringify(productData[key]));
+            } else {
+                formData.append(key, String(productData[key]));
+            }
+        });
         
         // Add images
-        productData.images.forEach((image, index) => {
+        productData.images.forEach((image) => {
             formData.append('images', image);
         });
         
-        const response = await apiFormDataRequest(ENDPOINTS.CREATE_PRODUCT, formData);
+        const response = await apiFormDataRequest(ENDPOINTS.UPDATE_PRODUCT(productId), formData, 'PUT');
         return await response.json();
     } else {
         // No images, use regular JSON request
-        const response = await apiRequest(ENDPOINTS.CREATE_PRODUCT, {
-            method: 'POST',
+        const response = await apiRequest(ENDPOINTS.UPDATE_PRODUCT(productId), {
+            method: 'PUT',
             body: JSON.stringify(productData),
         });
         return await response.json();
     }
-}
-
-export async function updateProduct(productId: string, productData: Partial<UpdateProductRequest>): Promise<Product> {
-    const response = await apiRequest(ENDPOINTS.UPDATE_PRODUCT(productId), {
-        method: 'PUT',
-        body: JSON.stringify(productData),
-    });
-    return await response.json();
 }
 
 export async function deleteProduct(productId: string): Promise<void> {

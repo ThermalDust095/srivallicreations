@@ -47,7 +47,7 @@ const ProductDetail: React.FC = () => {
     if (product) {
       if (product.size.length > 0) setSelectedSize(product.size[0]);
       // Use colors array if available, fallback to color
-      const availableColors = product.colors || product.color || [];
+      const availableColors = (product.colors || product.color || []);
       if (availableColors.length > 0) setSelectedColor(availableColors[0]);
     }
   }, [product]);

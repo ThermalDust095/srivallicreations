@@ -39,13 +39,14 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
         inStock: productData.inStock,
         featured: productData.featured,
         youtubeUrl: productData.youtubeUrl,
-        skus: Object.entries(productData.sizeStock || {}).flatMap(([size, stock]) =>
-          (productData.color || []).map(color => ({
+        skus: Object.entries(productData.sizeStock || {}).flatMap(([size, stock]) => {
+          const colors = productData.colors || productData.color || [];
+          return colors.map(color => ({
             size,
             color,
             stock: stock || 0,
-          }))
-        ),
+          }));
+        }),
       };
       
       const newProduct = await apiCreateProduct(createRequest);
@@ -86,21 +87,40 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const addToCart = (product: Product, size: string, color: string, quantity: number) => {
+    // Validate inputs
+    if (!product || !size || !color || quantity <= 0) {
+      showToast.error('Invalid product selection');
+      return;
+    }
+
+    // Check stock availability
+    const availableStock = product.sizeStock?.[size] || 0;
+    if (availableStock < quantity) {
+      showToast.error(`Only ${availableStock} items available in size ${size}`);
+      return;
+    }
     setCart(prev => {
       const existingItem = prev.find(item => 
         item.id === product.id && item.selectedSize === size && item.selectedColor === color
       );
 
       if (existingItem) {
+        const newQuantity = existingItem.quantity + quantity;
+        if (newQuantity > availableStock) {
+          showToast.error(`Cannot add more items. Only ${availableStock} available.`);
+          return prev;
+        }
         return prev.map(item =>
           item.id === product.id && item.selectedSize === size && item.selectedColor === color
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: newQuantity }
             : item
         );
       }
 
       return [...prev, { ...product, quantity, selectedSize: size, selectedColor: color }];
     });
+    
+    showToast.success(`Added ${quantity} item(s) to cart`);
   };
 
   const removeFromCart = (id: string, size: string, color: string) => {

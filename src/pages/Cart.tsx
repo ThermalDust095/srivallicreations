@@ -86,22 +86,37 @@ const Cart: React.FC = () => {
                     <h3 className="text-lg font-semibold text-gray-900 truncate">{item.name}</h3>
                     <p className="text-sm text-gray-500 mt-1">{item.category}</p>
                     <div className="flex items-center space-x-4 mt-2">
-                      <span className="text-sm text-gray-600">Size: {item.selectedSize}</span>
-                      <span className="text-sm text-gray-600">Color: {item.selectedColor}</span>
+                      <span className="text-sm text-gray-600">Size: {item.selectedSize || 'N/A'}</span>
+                      <span className="text-sm text-gray-600">Color: {item.selectedColor || 'N/A'}</span>
                     </div>
                   </div>
 
                   {/* Quantity Controls */}
                   <div className="flex items-center space-x-3">
                     <button
-                      onClick={() => updateCartQuantity(item.id, item.selectedSize, item.selectedColor, item.quantity - 1)}
+                      onClick={() => {
+                        const newQuantity = item.quantity - 1;
+                        if (newQuantity <= 0) {
+                          removeFromCart(item.id, item.selectedSize, item.selectedColor);
+                        } else {
+                          updateCartQuantity(item.id, item.selectedSize, item.selectedColor, newQuantity);
+                        }
+                      }}
                       className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
                     <span className="w-8 text-center font-medium">{item.quantity}</span>
                     <button
-                      onClick={() => updateCartQuantity(item.id, item.selectedSize, item.selectedColor, item.quantity + 1)}
+                      onClick={() => {
+                        const maxStock = item.sizeStock?.[item.selectedSize] || 0;
+                        const newQuantity = item.quantity + 1;
+                        if (newQuantity > maxStock) {
+                          showToast.error(`Only ${maxStock} items available`);
+                        } else {
+                          updateCartQuantity(item.id, item.selectedSize, item.selectedColor, newQuantity);
+                        }
+                      }}
                       className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
                     >
                       <Plus className="w-4 h-4" />

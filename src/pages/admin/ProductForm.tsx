@@ -20,6 +20,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
     size: [] as string[],
     color: [] as string[],
     images: [] as string[],
+    imageFiles: [] as File[], // Store actual File objects
     youtubeUrl: '',
     inStock: true,
     featured: false,
@@ -39,7 +40,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
         price: product.price,
         category: product.category,
         size: product.size,
-        color: product.color,
+        color: product.colors || product.color || [],
         images: product.images,
         youtubeUrl: product.youtubeUrl || '',
         inStock: product.inStock,
@@ -62,13 +63,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
       return;
     }
 
-    if (formData.images.length === 0) {
+    if (formData.images.length === 0 && !product) {
       showToast.error('Please add at least one image');
       return;
     }
 
     const productData = {
       ...formData,
+      images: formData.imageFiles, // Use File objects for upload
       sizeStock: formData.size.reduce((acc, size) => {
         acc[size] = formData.sizeStock[size] || 0;
         return acc;
@@ -139,10 +141,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
   };
 
   const removeImage = (imageToRemove: string) => {
+    const imageIndex = formData.images.indexOf(imageToRemove);
     setFormData(prev => ({
       ...prev,
-      images: prev.images.filter(image => image !== imageToRemove)
+      images: prev.images.filter(image => image !== imageToRemove),
+      imageFiles: prev.imageFiles?.filter((_, index) => index !== imageIndex) || []
     }));
+    
+    // Clean up object URL to prevent memory leaks
+    if (imageToRemove.startsWith('blob:')) {
+      URL.revokeObjectURL(imageToRemove);
+    }
   };
 
   const updateSizeStock = (size: string, stock: number) => {
@@ -171,18 +180,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
     setUploadingImage(true);
 
     try {
-      // Convert to base64 for demo purposes
-      // In a real app, you would upload to a cloud service like AWS S3, Cloudinary, etc.
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const imageUrl = event.target?.result as string;
-        setFormData(prev => ({
-          ...prev,
-          images: [...prev.images, imageUrl]
-        }));
-        setUploadingImage(false);
-      };
-      reader.readAsDataURL(file);
+      // Store the actual File object for upload
+      setFormData(prev => ({
+        ...prev,
+        imageFiles: [...(prev.imageFiles || []), file],
+        images: [...prev.images, URL.createObjectURL(file)] // For preview
+      }));
+      setUploadingImage(false);
     } catch (error) {
       console.error('Error uploading image:', error);
       showToast.error('Failed to upload image');
@@ -356,7 +360,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
               </div>
               
               <div className="flex flex-wrap gap-2">
-                {formData.color.map((color) => (
+                {(formData.color || []).map((color) => (
                   <div key={color} className="flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg">
                     <span className="text-sm font-medium text-gray-900">{color}</span>
                     <button
