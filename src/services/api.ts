@@ -2,7 +2,6 @@ import { API_BASE_URL, ENDPOINTS } from "../constants/endpoints";
 import { Product } from "../types/Product";
 import { GetProductsResponse, CreateProductRequest, UpdateProductRequest, ApiError } from "../types/apiTypes";
 
-// Helper function to handle API errors
 const handleApiError = async (response: Response): Promise<never> => {
     let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
     
@@ -16,7 +15,6 @@ const handleApiError = async (response: Response): Promise<never> => {
     throw new Error(errorMessage);
 };
 
-// Helper function to make API requests
 const apiRequest = async (url: string, options: RequestInit = {}): Promise<Response> => {
     const response = await fetch(`${API_BASE_URL}${url}`, {
         headers: {
@@ -33,11 +31,9 @@ const apiRequest = async (url: string, options: RequestInit = {}): Promise<Respo
     return response;
 };
 
-// Helper function for FormData requests (file uploads) - no Content-Type header for multipart
 const apiFormDataRequest = async (url: string, formData: FormData, method: string = 'POST'): Promise<Response> => {
     const response = await fetch(`${API_BASE_URL}${url}`, {
         method: method,
-        // Don't set Content-Type header - let browser set it with boundary for multipart/form-data
         body: formData,
     });
 
@@ -52,7 +48,6 @@ export async function fetchProductDetail(productId: string): Promise<Product> {
     const response = await apiRequest(ENDPOINTS.PRODUCT_DETAIL(productId));
     const product = await response.json();
     
-    // Ensure color array exists (backend returns 'colors')
     if (product.colors && !product.color) {
         product.color = product.colors;
     }
@@ -70,7 +65,6 @@ export async function fetchProducts(page: number = 1): Promise<{ results: Produc
     const response = await apiRequest(url);
     const data: GetProductsResponse = await response.json();
     
-    // Process products to ensure color array exists
     const processedResults = data.results.map(product => ({
         ...product,
         color: product.colors || product.color || [],
@@ -87,7 +81,6 @@ export async function fetchAllProducts(): Promise<{ results: Product[], totalCou
     const response = await apiRequest(ENDPOINTS.GET_ALL_PRODUCTS);
     const data: GetProductsResponse = await response.json();
     
-    // Process products to ensure color array exists
     const processedResults = data.results.map(product => ({
         ...product,
         color: product.colors || product.color || [],
@@ -102,7 +95,6 @@ export async function fetchAllProducts(): Promise<{ results: Product[], totalCou
 export async function createProduct(productData: CreateProductRequest): Promise<Product> {
     const formData = new FormData();
     
-    // Add basic product data
     formData.append('name', productData.name);
     formData.append('description', productData.description);
     formData.append('price', String(productData.price));
@@ -114,12 +106,10 @@ export async function createProduct(productData: CreateProductRequest): Promise<
         formData.append('youtubeUrl', productData.youtubeUrl);
     }
     
-    // Add SKUs as JSON
     if (productData.skus && productData.skus.length > 0) {
         formData.append('skus', JSON.stringify(productData.skus));
     }
     
-    // Add images if provided
     if (productData.images && productData.images.length > 0) {
         productData.images.forEach((image) => {
             formData.append('images', image);
@@ -131,13 +121,11 @@ export async function createProduct(productData: CreateProductRequest): Promise<
 }
 
 export async function updateProduct(productId: string, productData: Partial<UpdateProductRequest>): Promise<Product> {
-    // Check if we have images to upload
     if (productData.images && productData.images.length > 0) {
         const formData = new FormData();
         
-        // Add all fields to FormData
         Object.keys(productData).forEach(key => {
-            if (key === 'images') return; // Handle separately
+            if (key === 'images') return;
             if (key === 'skus') {
                 formData.append(key, JSON.stringify(productData[key]));
             } else {
@@ -145,7 +133,6 @@ export async function updateProduct(productId: string, productData: Partial<Upda
             }
         });
         
-        // Add images
         productData.images.forEach((image) => {
             formData.append('images', image);
         });
@@ -153,7 +140,6 @@ export async function updateProduct(productId: string, productData: Partial<Upda
         const response = await apiFormDataRequest(ENDPOINTS.UPDATE_PRODUCT(productId), formData, 'PUT');
         return await response.json();
     } else {
-        // No images, use regular JSON request
         const response = await apiRequest(ENDPOINTS.UPDATE_PRODUCT(productId), {
             method: 'PUT',
             body: JSON.stringify(productData),
@@ -168,7 +154,6 @@ export async function deleteProduct(productId: string): Promise<void> {
     });
 }
 
-// Partial update (PATCH)
 export async function patchProduct(productId: string, productData: Partial<UpdateProductRequest>): Promise<Product> {
     const response = await apiRequest(ENDPOINTS.UPDATE_PRODUCT(productId), {
         method: 'PATCH',

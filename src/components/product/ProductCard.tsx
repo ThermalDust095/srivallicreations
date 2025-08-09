@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Eye } from 'lucide-react';
 import { Product } from '../../types/Product';
-import { useProducts } from '../../context/ProductContext';
-import showToast from '../UI/Toast';
+import { useProducts } from '../../store/ProductContext';
+import { validateProductSelection } from '../../utils/validation';
+import showToast from '../ui/Toast';
+import Badge from '../ui/Badge';
 
 interface ProductCardProps {
   product: Product;
@@ -13,21 +15,15 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [selectedSize, setSelectedSize] = useState(product.size?.[0] || '');
-  const [selectedColor, setSelectedColor] = useState((product.colors || product.color)?.[0] || '');
+  const [selectedColor, setSelectedColor] = useState((product.colors || [])[0] || '');
   const { addToCart } = useProducts();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Check if product has the required data
-    if (!selectedSize || !selectedColor) {
-      showToast.error('Please select size and color');
-      return;
-    }
-    
-    const stockAvailable = product.sizeStock[selectedSize] || 0;
-    if (stockAvailable <= 0) {
-      showToast.error(`Size ${selectedSize} is out of stock`);
+    const validation = validateProductSelection(product, selectedSize, selectedColor, 1);
+    if (!validation.isValid) {
+      showToast.error(validation.error!);
       return;
     }
     
@@ -41,7 +37,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
   };
 
   const getStockForSize = (size: string) => {
-    return product.sizeStock[size] || 0;
+    return product.sizeStock?.[size] || 0;
+  };
+
+  const getColorStyle = (color: string) => {
+    const colorMap: Record<string, string> = {
+      'white': '#ffffff',
+      'black': '#000000',
+      'rose gold': '#E91E63',
+      'navy': '#1e3a8a',
+      'burgundy': '#7c2d12',
+      'emerald': '#047857',
+      'classic blue': '#3b82f6',
+      'light wash': '#93c5fd',
+    };
+    return { backgroundColor: colorMap[color.toLowerCase()] || '#9ca3af' };
   };
 
   return (
@@ -52,7 +62,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
       {/* Image Container */}
       <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
         <img
-          src={product.images[0]}
+          src={product.images?.[0] || '/placeholder-image.jpg'}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
@@ -86,9 +96,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
         {/* Featured Badge */}
         {product.featured && (
           <div className="absolute top-4 left-4">
-            <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2 py-1 sm:px-3 rounded-full text-xs font-medium">
-              Featured
-            </span>
+            <Badge variant="info" size="sm">Featured</Badge>
           </div>
         )}
 
@@ -96,7 +104,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
         <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={handleAddToCart}
-            disabled={!product.inStock} // Disable button if not in stock
+            disabled={!product.inStock}
             className={`w-full py-2 px-3 sm:px-4 rounded-lg font-medium flex items-center justify-center space-x-2 text-sm transition-colors duration-200 ${
               product.inStock
                 ? 'bg-white text-gray-900 hover:bg-gray-50'
@@ -119,74 +127,75 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
         </div>
 
         {/* Size Selection */}
-        <div className="mb-2 sm:mb-3">
-          <div className="flex items-center space-x-1">
-            {product.size.slice(0, 4).map((size) => (
-              <button
-                key={size}
-                onClick={() => setSelectedSize(size)}
-                className={`px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs rounded border transition-colors duration-200 ${
-                  selectedSize === size
-                    ? 'border-pink-500 bg-pink-50 text-pink-600'
-                    : getStockForSize(size) > 0 
-                      ? 'border-gray-200 text-gray-600 hover:border-gray-300'
-                      : 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
-                }`}
-                disabled={getStockForSize(size) === 0}
-                title={`${size} - ${getStockForSize(size)} in stock`}
-              >
-                {size}
-              </button>
-            ))}
-            {product.size.length > 4 && (
-              <span className="text-xs text-gray-400 ml-1">+{product.size.length - 4}</span>
-            )}
+        {product.size && product.size.length > 0 && (
+          <div className="mb-2 sm:mb-3">
+            <div className="flex items-center space-x-1">
+              {product.size.slice(0, 4).map((size) => (
+                <button
+                  key={size}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedSize(size);
+                  }}
+                  className={`px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs rounded border transition-colors duration-200 ${
+                    selectedSize === size
+                      ? 'border-pink-500 bg-pink-50 text-pink-600'
+                      : getStockForSize(size) > 0 
+                        ? 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        : 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                  }`}
+                  disabled={getStockForSize(size) === 0}
+                  title={`${size} - ${getStockForSize(size)} in stock`}
+                >
+                  {size}
+                </button>
+              ))}
+              {product.size.length > 4 && (
+                <span className="text-xs text-gray-400 ml-1">+{product.size.length - 4}</span>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Color Selection */}
-        <div className="mb-2 sm:mb-3">
-          <div className="flex items-center space-x-2">
-            {(product.colors || product.color || []).slice(0, 3).map((color) => (
-              <button
-                key={color}
-                onClick={() => setSelectedColor(color)}
-                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 transition-all duration-200 ${
-                  selectedColor === color ? 'border-gray-400 scale-110' : 'border-gray-200'
-                }`}
-                style={{ 
-                  backgroundColor: color.toLowerCase() === 'white' ? '#ffffff' : 
-                                 color.toLowerCase() === 'black' ? '#000000' :
-                                 color.toLowerCase() === 'rose gold' ? '#E91E63' :
-                                 color.toLowerCase() === 'navy' ? '#1e3a8a' :
-                                 color.toLowerCase() === 'burgundy' ? '#7c2d12' :
-                                 color.toLowerCase() === 'emerald' ? '#047857' :
-                                 color.toLowerCase() === 'classic blue' ? '#3b82f6' :
-                                 color.toLowerCase() === 'light wash' ? '#93c5fd' :
-                                 '#9ca3af'
-                }}
-                title={color}
-              />
-            ))}
-            {(product.colors || product.color || []).length > 3 && (
-              <span className="text-xs text-gray-400 ml-1">+{(product.colors || product.color || []).length - 3}</span>
-            )}
+        {product.colors && product.colors.length > 0 && (
+          <div className="mb-2 sm:mb-3">
+            <div className="flex items-center space-x-2">
+              {product.colors.slice(0, 3).map((color) => (
+                <button
+                  key={color}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedColor(color);
+                  }}
+                  className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 transition-all duration-200 ${
+                    selectedColor === color ? 'border-gray-400 scale-110' : 'border-gray-200'
+                  }`}
+                  style={getColorStyle(color)}
+                  title={color}
+                />
+              ))}
+              {product.colors.length > 3 && (
+                <span className="text-xs text-gray-400 ml-1">+{product.colors.length - 3}</span>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Price and Stock */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <span className="text-base sm:text-lg font-bold text-gray-900">₹{product.price}</span>
-            {product.inStock ? (
-              <span className="text-xs text-green-600 font-medium">In Stock</span>
-            ) : (
-              <span className="text-xs text-red-600 font-medium">Out of Stock</span>
-            )}
+            <Badge 
+              variant={product.inStock ? 'success' : 'error'} 
+              size="sm"
+            >
+              {product.inStock ? 'In Stock' : 'Out of Stock'}
+            </Badge>
           </div>
-          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded">
+          <Badge variant="default" size="sm">
             {product.category}
-          </span>
+          </Badge>
         </div>
       </div>
     </Link>

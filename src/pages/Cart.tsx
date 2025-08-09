@@ -1,14 +1,17 @@
 import React from 'react';
-import { Minus, Plus, Trash2, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useProducts } from '../context/ProductContext';
-import { useAuth } from '../context/AuthContext';
+import { useProducts } from '../store/ProductContext';
+import { useAuth } from '../store/AuthContext';
 import DeliveryAddressForm from '../components/Forms/DeliveryAddressForm';
 import { DeliveryAddressFormData } from '../schemas/authSchemas';
-import showToast from '../components/UI/Toast';
+import showToast from '../components/ui/Toast';
+import CartItem from '../components/cart/CartItem';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
 
 const Cart: React.FC = () => {
-  const { cart, updateCartQuantity, removeFromCart, getTotalPrice, clearCart } = useProducts();
+  const { cart, getTotalPrice, clearCart } = useProducts();
   const { user } = useAuth();
   const [showDeliveryForm, setShowDeliveryForm] = React.useState(false);
   const total = getTotalPrice();
@@ -40,7 +43,7 @@ const Cart: React.FC = () => {
           <p className="text-gray-600 mb-8">Looks like you haven't added anything to your cart yet.</p>
           <Link
             to="/products"
-            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
+            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Continue Shopping
@@ -68,76 +71,14 @@ const Cart: React.FC = () => {
           </Link>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <Card padding="none" className="overflow-hidden">
           {/* Cart Items */}
-          <div className="divide-y divide-gray-200">
+          <div>
             {cart.map((item, index) => (
-              <div key={`${item.id}-${item.selectedSize}-${item.selectedColor}-${index}`} className="p-6">
-                <div className="flex items-center space-x-4">
-                  {/* Product Image */}
-                  <img
-                    src={item.images[0]}
-                    alt={item.name}
-                    className="w-20 h-20 object-cover rounded-lg"
-                  />
-
-                  {/* Product Details */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate">{item.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{item.category}</p>
-                    <div className="flex items-center space-x-4 mt-2">
-                      <span className="text-sm text-gray-600">Size: {item.selectedSize || 'N/A'}</span>
-                      <span className="text-sm text-gray-600">Color: {item.selectedColor || 'N/A'}</span>
-                    </div>
-                  </div>
-
-                  {/* Quantity Controls */}
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => {
-                        const newQuantity = item.quantity - 1;
-                        if (newQuantity <= 0) {
-                          removeFromCart(item.id, item.selectedSize, item.selectedColor);
-                        } else {
-                          updateCartQuantity(item.id, item.selectedSize, item.selectedColor, newQuantity);
-                        }
-                      }}
-                      className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-                    <span className="w-8 text-center font-medium">{item.quantity}</span>
-                    <button
-                      onClick={() => {
-                        const maxStock = item.sizeStock?.[item.selectedSize] || 0;
-                        const newQuantity = item.quantity + 1;
-                        if (newQuantity > maxStock) {
-                          showToast.error(`Only ${maxStock} items available`);
-                        } else {
-                          updateCartQuantity(item.id, item.selectedSize, item.selectedColor, newQuantity);
-                        }
-                      }}
-                      className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Price */}
-                  <div className="text-right">
-                    <p className="text-lg font-semibold text-gray-900">₹{(item.price * item.quantity).toFixed(2)}</p>
-                    <p className="text-sm text-gray-500">₹{item.price.toFixed(2)} each</p>
-                  </div>
-
-                  {/* Remove Button */}
-                  <button
-                    onClick={() => removeFromCart(item.id, item.selectedSize, item.selectedColor)}
-                    className="text-red-400 hover:text-red-600 transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
+              <CartItem 
+                key={`${item.id}-${item.selectedSize}-${item.selectedColor}-${index}`}
+                item={item}
+              />
             ))}
           </div>
 
@@ -149,21 +90,22 @@ const Cart: React.FC = () => {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <button
+              <Button
+                variant="outline"
                 onClick={clearCart}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1"
               >
                 Clear Cart
-              </button>
-              <button 
+              </Button>
+              <Button
                 onClick={handleCheckout}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-200"
+                className="flex-1"
               >
                 Proceed to Checkout
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Delivery Address Form */}

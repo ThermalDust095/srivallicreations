@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Product, CartItem } from '../types/Product';
-import { createProduct as apiCreateProduct, updateProduct as apiUpdateProduct, deleteProduct as apiDeleteProduct } from '../api/apiClient';
+import { createProduct as apiCreateProduct, updateProduct as apiUpdateProduct, deleteProduct as apiDeleteProduct } from '../services/api';
 import { CreateProductRequest } from '../types/apiTypes';
-import showToast from '../components/UI/Toast';
+import showToast from '../components/ui/Toast';
 
 interface ProductContextType {
   products: Product[];
@@ -21,16 +21,12 @@ interface ProductContextType {
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
-// Sample initial products
-const initialProducts: Product[] = [];
-
 export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
 
   const addProduct = async (productData: Omit<Product, 'id' | 'createdAt'>) => {
     try {
-      // Convert frontend product data to API format
       const createRequest: CreateProductRequest = {
         name: productData.name,
         description: productData.description,
@@ -40,7 +36,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
         featured: productData.featured,
         youtubeUrl: productData.youtubeUrl,
         skus: Object.entries(productData.sizeStock || {}).flatMap(([size, stock]) => {
-          const colors = productData.colors || productData.color || [];
+          const colors = productData.colors || [];
           return colors.map(color => ({
             size,
             color,
@@ -87,18 +83,17 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const addToCart = (product: Product, size: string, color: string, quantity: number) => {
-    // Validate inputs
     if (!product || !size || !color || quantity <= 0) {
       showToast.error('Invalid product selection');
       return;
     }
 
-    // Check stock availability
     const availableStock = product.sizeStock?.[size] || 0;
     if (availableStock < quantity) {
       showToast.error(`Only ${availableStock} items available in size ${size}`);
       return;
     }
+
     setCart(prev => {
       const existingItem = prev.find(item => 
         item.id === product.id && item.selectedSize === size && item.selectedColor === color

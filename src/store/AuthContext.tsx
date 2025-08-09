@@ -3,7 +3,6 @@ import { User, LoginCredentials, RegisterData, AuthContextType } from '../types/
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demonstration
 const mockUsers: User[] = [
   {
     id: '1',
@@ -27,7 +26,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load user from localStorage on mount
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
@@ -38,10 +36,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (credentials: LoginCredentials): Promise<void> => {
     setIsLoading(true);
     
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Mock authentication - in real app, this would be an API call
     const foundUser = mockUsers.find(u => u.email === credentials.email);
     
     if (!foundUser) {
@@ -49,7 +45,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       throw new Error('User not found');
     }
     
-    // In real app, password would be verified on server
     if (credentials.password !== 'password123') {
       setIsLoading(false);
       throw new Error('Invalid password');
@@ -63,7 +58,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const register = async (data: RegisterData): Promise<void> => {
     setIsLoading(true);
     
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     if (data.password !== data.confirmPassword) {
@@ -71,14 +65,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       throw new Error('Passwords do not match');
     }
     
-    // Check if user already exists
     const existingUser = mockUsers.find(u => u.email === data.email);
     if (existingUser) {
       setIsLoading(false);
       throw new Error('User already exists');
     }
     
-    // Create new user
     const newUser: User = {
       id: Date.now().toString(),
       email: data.email,
@@ -98,13 +90,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('currentUser');
   };
 
-  const isAdmin = () => {
-    return user?.role === 'admin';
-  };
-
-  const isAuthenticated = () => {
-    return user !== null;
-  };
+  const isAdmin = () => user?.role === 'admin';
+  const isAuthenticated = () => user !== null;
 
   return (
     <AuthContext.Provider value={{
