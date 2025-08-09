@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Product } from '../types/Product';
-import { fetchProducts, fetchAllProducts } from '../api/apiClient';
+import { fetchProducts, fetchAllProducts } from '../services/api';
 import { useApi } from './useApi';
 
 export function useProductList(fetchAll = false) {

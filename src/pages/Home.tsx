@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowRight, Star, Truck, Shield, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useProducts } from '../context/ProductContext';
-import ProductGrid from '../components/Product/ProductGrid';
+import { useProducts } from '../store/ProductContext';
+import ProductGrid from '../components/product/ProductGrid';
 import { Product } from '../types/Product';
 
 const Home: React.FC = () => {

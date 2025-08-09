@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {SlidersHorizontal } from 'lucide-react';
-import { useProducts } from '../context/ProductContext';
-import ProductGrid from '../components/Product/ProductGrid';
-import { ProductGridLoading } from '../components/Layout/Loading';
-import { fetchProducts } from '../api/apiClient';
-import showToast from '../components/UI/Toast';
+import { useProducts } from '../store/ProductContext';
+import ProductGrid from '../components/product/ProductGrid';
+import { ProductGridLoading } from '../components/layout/Loading';
+import { fetchProducts } from '../services/api';
+import showToast from '../components/ui/Toast';
 
 const ProductsPage: React.FC = () => {
   const { products, setProducts } = useProducts();

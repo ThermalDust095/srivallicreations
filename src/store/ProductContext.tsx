@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Product, CartItem } from '../types/Product';
+import { Product, CartItem, CreateProductFormData } from '../types/Product';
 import { createProduct as apiCreateProduct, updateProduct as apiUpdateProduct, deleteProduct as apiDeleteProduct } from '../services/api';
 import { CreateProductRequest } from '../types/apiTypes';
 import showToast from '../components/ui/Toast';
@@ -8,7 +8,7 @@ interface ProductContextType {
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   cart: CartItem[];
-  addProduct: (product: Omit<Product, 'id' | 'createdAt'>) => Promise<void>;
+  addProduct: (product: CreateProductRequest) => Promise<void>;
   updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   addToCart: (product: Product, size: string, color: string, quantity: number) => void;
@@ -25,27 +25,9 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt'>) => {
+  const addProduct = async (productData: CreateProductRequest) => {
     try {
-      const createRequest: CreateProductRequest = {
-        name: productData.name,
-        description: productData.description,
-        price: productData.price,
-        category: productData.category,
-        inStock: productData.inStock,
-        featured: productData.featured,
-        youtubeUrl: productData.youtubeUrl,
-        skus: Object.entries(productData.sizeStock || {}).flatMap(([size, stock]) => {
-          const colors = productData.colors || [];
-          return colors.map(color => ({
-            size,
-            color,
-            stock: stock || 0,
-          }));
-        }),
-      };
-      
-      const newProduct = await apiCreateProduct(createRequest);
+      const newProduct = await apiCreateProduct(productData);
       setProducts(prev => [...prev, newProduct]);
       showToast.success('Product created successfully!');
     } catch (error) {

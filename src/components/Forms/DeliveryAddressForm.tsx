@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X, MapPin, User, Phone, Home } from 'lucide-react';
 import { deliveryAddressSchema, DeliveryAddressFormData } from '../../schemas/authSchemas';
-import showToast from '../UI/Toast';
+import showToast from '../ui/Toast';
 
 interface DeliveryAddressFormProps {
   onClose: () => void;

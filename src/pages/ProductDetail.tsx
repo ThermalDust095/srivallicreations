@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Heart, ShoppingBag, Truck, Shield, RefreshCw, Play } from 'lucide-react';
-import { useProducts } from '../context/ProductContext';
+import { useProducts } from '../store/ProductContext';
 import { Product } from '../types/Product';
-import { fetchProductDetail } from '../api/apiClient';
-import { PageLoading } from '../components/Layout/Loading';
-import showToast from '../components/UI/Toast';
+import { fetchProductDetail } from '../services/api';
+import { PageLoading } from '../components/layout/Loading';
+import showToast from '../components/ui/Toast';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();

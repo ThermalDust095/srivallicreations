@@ -17,6 +17,17 @@ export interface Product {
   deleted_at?: string | null;
 }
 
+export interface CreateProductFormData {
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  inStock: boolean;
+  featured: boolean;
+  youtubeUrl?: string;
+  skus: { size: string; color: string; stock: number }[];
+}
+
 export interface CartItem extends Product {
   quantity: number;
   selectedSize: string;

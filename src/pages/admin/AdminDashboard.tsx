@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Package, Plus, Edit, Trash2, Eye, BarChart3 } from 'lucide-react';
-import { useProducts } from '../../context/ProductContext';
+import { useProducts } from '../../store/ProductContext';
 import { Product } from '../../types/Product';
 import ProductForm from './ProductForm';
-import { fetchAllProducts } from '../../api/apiClient';
+import { fetchAllProducts } from '../../services/api';
 
 const AdminDashboard: React.FC = () => {
   const { products, setProducts, deleteProduct } = useProducts();
