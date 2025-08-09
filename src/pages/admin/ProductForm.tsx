@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
-import {useForm, useFieldArray, Controller} from 'react-hook-form';
+import React, { useEffect } from 'react';
+import { X, Plus, Trash2 } from 'lucide-react';
+import {useForm, useFieldArray} from 'react-hook-form';
 import { useProducts } from '../../store/ProductContext';
 import { Product } from '../../types/Product';
 import showToast from '../../components/ui/Toast';
@@ -8,8 +8,6 @@ import ImageUploader from '../../components/ui/ImageUploader';
 
 import productSchema from '../../schemas/productSchemas';
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createProduct } from '../../services/api';
-
 
 
 interface ProductFormProps {
@@ -19,11 +17,9 @@ interface ProductFormProps {
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) => {
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-
   const { addProduct ,updateProduct } = useProducts();
 
-  const { register, handleSubmit, watch, setValue, getValues, control, formState: { errors } } = useForm({
+  const { register, handleSubmit, setValue, control, formState: { errors } } = useForm({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: product?.name || "",
@@ -67,7 +63,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
       showToast.error('Failed to save product. Please try again.');
     }
   }
-  
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
