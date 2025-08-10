@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import {useForm, useFieldArray} from 'react-hook-form';
 import { useProducts } from '../../store/ProductContext';
 import { Product } from '../../types/Product';
 import showToast from '../../components/ui/Toast';
 import ImageUploader from '../../components/ui/ImageUploader';
+import { fetchProductDetail } from '../../services/api';
 
 import productSchema from '../../schemas/productSchemas';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +20,7 @@ interface ProductFormProps {
 const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) => {
   const { addProduct ,updateProduct } = useProducts();
 
-  const { register, handleSubmit, setValue, control, formState: { errors } } = useForm({
+  const { register, handleSubmit, setValue, control,formState: { errors } } = useForm({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: product?.name || "",
@@ -29,8 +30,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
       youtubeUrl: product?.youtubeUrl || "",
       inStock: product?.inStock ?? true,
       featured: product?.featured ?? false,
-      // skus: product?.skus || [],
-      skus: [],
+      skus: product?.skus || [],
     }
 });
 
@@ -42,6 +42,24 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
   useEffect(() => {
     console.log('Errors:', errors);
   }, [errors])
+
+  useEffect(() => {
+    const init = async () => {
+    if (product) {
+      const data:Product = await fetchProductDetail(product.id);
+      setValue("name", data.name);
+      setValue("description", data.description);
+      setValue("price", data.price);
+      setValue("category", data.category);
+      setValue("youtubeUrl", data.youtubeUrl || "");
+      setValue("inStock", data.inStock);
+      setValue("featured", data.featured);
+      setValue("skus", data.skus || []); 
+      }
+    }
+
+    init();
+  }, [product]);
 
   //Submitting and Posting to API 
   const onSubmit = async (data: any) => {
@@ -98,18 +116,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Category *
               </label>
-              <select
+              <input
+                type="text"
                 {...register("category")}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 required
-              >
-                <option value="">Select Category</option>
-                <option value="Tops">Tops</option>
-                <option value="Dresses">Dresses</option>
-                <option value="Bottoms">Bottoms</option>
-                <option value="Outerwear">Outerwear</option>
-                <option value="Accessories">Accessories</option>
-              </select>
+              />
             </div>
           </div>
 
@@ -200,7 +212,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onClose, onSave }) =
           </div>
 
           {/* Images */}
-          <ImageUploader control={control} setValue={setValue} name="images" />
+          <ImageUploader control={control} setValue={setValue} name="image_files" />
 
           {/* Toggles */}
           <div className="flex space-x-6">

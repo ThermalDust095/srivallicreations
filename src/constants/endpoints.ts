@@ -7,7 +7,7 @@ export const ENDPOINTS = {
     
     // Product endpoints
     GET_PRODUCTS: "/api/products/product/",
-    GET_ALL_PRODUCTS: "/api/products/product/",
+    GET_ALL_PRODUCTS: "/api/products/product/?all-data=true",
     PRODUCT_DETAIL: (productId: string): string => `/api/products/product/${productId}/`,
     CREATE_PRODUCT: "/api/products/product-create/",
     UPDATE_PRODUCT: (productId: string): string => `/api/products/product/${productId}/`,

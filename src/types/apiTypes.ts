@@ -20,7 +20,7 @@ export interface CreateProductRequest {
         color: string;
         stock: number;
     }>;
-    images?: File[];
+    image_files: File[];
 }
 
 export interface UpdateProductRequest extends Partial<CreateProductRequest> {

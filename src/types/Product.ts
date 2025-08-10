@@ -4,17 +4,16 @@ export interface Product {
   description: string;
   price: number;
   category: string;
-  size: string[];
-  color: string[];
   colors: string[]; // Backend returns 'colors' array
   images: string[];
   primary_image?: string;
   youtubeUrl?: string;
   inStock: boolean;
   featured: boolean;
-  sizeStock: { [size: string]: number };
   createdAt: string;
   deleted_at?: string | null;
+  skus: ProductSKU[];
+  image_files?: File[]; // For image uploads
 }
 
 export interface CreateProductFormData {
@@ -35,7 +34,6 @@ export interface CartItem extends Product {
 }
 
 export interface ProductSKU {
-  id: string;
   size: string;
   color: string;
   stock: number;

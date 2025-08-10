@@ -11,7 +11,7 @@ interface ProductContextType {
   addProduct: (product: CreateProductRequest) => Promise<void>;
   updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
-  addToCart: (product: Product, size: string, color: string, quantity: number) => void;
+  addToCart: (product: Product, size: string, color: string, quantity: number, availableStock: number) => void;
   removeFromCart: (id: string, size: string, color: string) => void;
   updateCartQuantity: (id: string, size: string, color: string, quantity: number) => void;
   clearCart: () => void;
@@ -64,13 +64,12 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  const addToCart = (product: Product, size: string, color: string, quantity: number) => {
+  const addToCart = (product: Product, size: string, color: string, quantity: number, availableStock: number) => {
     if (!product || !size || !color || quantity <= 0) {
       showToast.error('Invalid product selection');
       return;
     }
 
-    const availableStock = product.sizeStock?.[size] || 0;
     if (availableStock < quantity) {
       showToast.error(`Only ${availableStock} items available in size ${size}`);
       return;

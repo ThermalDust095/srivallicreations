@@ -18,7 +18,12 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
       return;
     }
 
-    const maxStock = item.sizeStock?.[item.selectedSize] || 0;
+    const maxStock = item.skus.find(
+      sku =>
+        sku.size === item.selectedSize &&
+        sku.color === item.selectedColor
+    )?.stock || 0;
+
     if (newQuantity > maxStock) {
       showToast.error(`Only ${maxStock} items available`);
       return;
@@ -53,16 +58,16 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
             variant="outline"
             size="sm"
             onClick={() => handleQuantityChange(item.quantity - 1)}
-            className="w-8 h-8 p-0 rounded-full"
+            className="w-auto h-auto p-0 rounded-full"
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-4 h-4 "/>
           </Button>
           <span className="w-8 text-center font-medium">{item.quantity}</span>
           <Button
             variant="outline"
             size="sm"
             onClick={() => handleQuantityChange(item.quantity + 1)}
-            className="w-8 h-8 p-0 rounded-full"
+            className="w-auto h-auto p-0 rounded-full"
           >
             <Plus className="w-4 h-4" />
           </Button>
@@ -71,7 +76,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
         {/* Price */}
         <div className="text-right">
           <p className="text-lg font-semibold text-gray-900">₹{(item.price * item.quantity).toFixed(2)}</p>
-          <p className="text-sm text-gray-500">₹{item.price.toFixed(2)} each</p>
+          <p className="text-sm text-gray-500">₹{item.price ? Number(item.price).toFixed(2) : '0.00'} each</p>
         </div>
 
         {/* Remove Button */}

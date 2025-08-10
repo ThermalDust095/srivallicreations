@@ -13,13 +13,11 @@ const AdminDashboard: React.FC = () => {
   const totalProducts = products.length;
   const inStockProducts = products.filter(p => p.inStock).length;
   const featuredProducts = products.filter(p => p.featured).length;
-  const totalValue = products.reduce((sum, p) => sum + p.price, 0);
-  const totalStock = products.reduce((sum, p) => sum + Object.values(p.sizeStock || {}).reduce((a, b) => a + b, 0), 0);
 
   useEffect(() => {
     const init = async () => {
       try {
-        const { results } = await fetchAllProducts();
+        const results = await fetchAllProducts();
         setProducts(results);
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -90,10 +88,6 @@ const AdminDashboard: React.FC = () => {
               <div className="p-2 bg-pink-100 rounded-lg">
                 <BarChart3 className="w-6 h-6 text-pink-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Stock</p>
-                <p className="text-2xl font-bold text-gray-900">{totalStock}</p>
-              </div>
             </div>
           </div>
         </div>
@@ -142,7 +136,7 @@ const AdminDashboard: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <img
-                          src={product.images[0]}
+                          src={product.primary_image || '/placeholder-image.jpg'}
                           alt={product.name}
                           className="w-12 h-12 rounded-lg object-cover"
                         />
@@ -170,9 +164,9 @@ const AdminDashboard: React.FC = () => {
                         }`}>
                           {product.inStock ? 'In Stock' : 'Out of Stock'}
                         </span>
-                        <div className="text-xs text-gray-500">
+                        {/* <div className="text-xs text-gray-500">
                           Total: {Object.values(product.sizeStock || {}).reduce((a, b) => a + b, 0)} units
-                        </div>
+                        </div> */}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -229,8 +223,9 @@ const AdminDashboard: React.FC = () => {
             setShowAddForm(false);
             setEditingProduct(null);
           }}
-          onSave={() => {
-            // Refresh handled by context
+          onSave={async () => {
+            const results = await fetchAllProducts();
+            setProducts(results);
           }}
         />
       )}

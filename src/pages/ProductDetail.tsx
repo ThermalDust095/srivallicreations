@@ -13,8 +13,8 @@ const ProductDetail: React.FC = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [product, setProduct] = useState<Product | null>(null);
 
-  const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState(products[0]?.skus?.[0]?.size || '');
+  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] || '');
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -26,6 +26,8 @@ const ProductDetail: React.FC = () => {
         if (!id) return;
         const data:Product = await fetchProductDetail(id);
         setProduct(data);
+        setSelectedSize(data.skus?.[0]?.size || '');
+        setSelectedColor(data.skus?.[0]?.color || '');
         setLoading(false);
       }
       
@@ -45,13 +47,24 @@ const ProductDetail: React.FC = () => {
 
   React.useEffect(() => {
     if (product) {
-      if (product.size.length > 0) setSelectedSize(product.size[0]);
+      // if (product.sizes.length > 0) setSelectedSize(product.sizes[0]);
       // Use colors array if available, fallback to color
-      const availableColors = (product.colors || product.color || []);
+      const availableColors = (product.colors || []);
       if (availableColors.length > 0) setSelectedColor(availableColors[0]);
     }
   }, [product]);
 
+
+  const getStockForSize = () =>{
+    for (const sku of product?.skus || []) {
+      if (sku.size === selectedSize && sku.color === selectedColor) {
+        return sku.stock;
+      }
+    }
+  }
+
+  const colors = [...new Set(product?.skus?.map(sku => sku.color) ?? [])];
+  const sizes = [...new Set(product?.skus?.map(sku => sku.size) ?? [])];
 
     if (isLoading) {
       return <PageLoading/>
@@ -83,19 +96,18 @@ const ProductDetail: React.FC = () => {
       return;
     }
     
-    const stockAvailable = product.sizeStock[selectedSize] || 0;
-    if (stockAvailable < quantity) {
-      showToast.error(`Only ${stockAvailable} items available in size ${selectedSize}`);
+    const availableStock = getStockForSize() || 0;
+    console.log('Stock available:', availableStock, 'Quantity:', quantity);
+
+    
+    if (availableStock < quantity) {
+      showToast.error(`Only ${availableStock} items available in size ${selectedSize}`);
       return;
     }
 
-    addToCart(product, selectedSize, selectedColor, quantity);
+    addToCart(product, selectedSize, selectedColor, quantity, availableStock);
     showToast.success('Added to cart successfully!');
     showToast.dismiss();
-  };
-
-  const getStockForSize = (size: string) => {
-    return product.sizeStock[size] || 0;
   };
 
   const getYouTubeEmbedUrl = (url: string) => {
@@ -200,18 +212,18 @@ const ProductDetail: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Size</h3>
                 <div className="grid grid-cols-5 gap-2">
-                  {product.size.map((size) => {
-                    const stock = getStockForSize(size);
+                  {sizes?.map((size) => {
+                    const stock = getStockForSize() || 0;
                     const isAvailable = stock > 0;
                     return (
                       <button
                         key={size}
-                        onClick={() => isAvailable && setSelectedSize(size)}
+                        onClick={() => setSelectedSize(size)}
                         disabled={!isAvailable}
                         className={`py-3 px-4 text-sm font-medium rounded-lg border transition-all duration-200 ${
                           selectedSize === size
                             ? 'border-pink-500 bg-pink-50 text-pink-600'
-                            : isAvailable
+                            : true
                             ? 'border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                             : 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
                         }`}
@@ -219,9 +231,6 @@ const ProductDetail: React.FC = () => {
                       >
                         <div className="text-center">
                           <div>{size}</div>
-                          <div className="text-xs mt-1">
-                            {isAvailable ? `${stock} left` : 'Out of stock'}
-                          </div>
                         </div>
                       </button>
                     );
@@ -233,7 +242,7 @@ const ProductDetail: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Color</h3>
                 <div className="flex items-center space-x-3">
-                  {(product.colors || product.color || []).map((color) => (
+                  {(colors).map((color) => (
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}
@@ -243,11 +252,11 @@ const ProductDetail: React.FC = () => {
                       style={{ 
                         backgroundColor: color.toLowerCase() === 'white' ? '#ffffff' : 
                                        color.toLowerCase() === 'black' ? '#000000' :
-                                       color.toLowerCase() === 'rose gold' ? '#E91E63' :
+                                       color.toLowerCase() === 'yellow' ? '#fffb00ff' :
                                        color.toLowerCase() === 'navy' ? '#1e3a8a' :
-                                       color.toLowerCase() === 'burgundy' ? '#7c2d12' :
+                                       color.toLowerCase() === 'red' ? '#ff0000ff' :
                                        color.toLowerCase() === 'emerald' ? '#047857' :
-                                       color.toLowerCase() === 'classic blue' ? '#3b82f6' :
+                                       color.toLowerCase() === 'blue' ? '#3b82f6' :
                                        color.toLowerCase() === 'light wash' ? '#93c5fd' :
                                        '#9ca3af'
                       }}
@@ -272,7 +281,7 @@ const ProductDetail: React.FC = () => {
                     <span className="px-4 py-2 font-medium">{quantity}</span>
                     <button
                       onClick={() => {
-                        const maxStock = getStockForSize(selectedSize);
+                        const maxStock = getStockForSize() || 0;
                         setQuantity(Math.min(maxStock, quantity + 1));
                       }}
                       className="px-3 py-2 text-gray-600 hover:bg-gray-50 transition-colors"
@@ -281,7 +290,7 @@ const ProductDetail: React.FC = () => {
                     </button>
                   </div>
                   <span className="text-sm text-gray-600">
-                    {getStockForSize(selectedSize)} available
+                    {getStockForSize()} available
                   </span>
                 </div>
               </div>
@@ -290,7 +299,7 @@ const ProductDetail: React.FC = () => {
               <div className="space-y-4">
                 <button
                   onClick={handleAddToCart}
-                  disabled={!selectedSize || !selectedColor || getStockForSize(selectedSize) === 0}
+                  disabled={!selectedSize || !selectedColor || getStockForSize() === 0}
                   className="w-full flex items-center justify-center space-x-2 py-4 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium rounded-xl hover:from-pink-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag className="w-5 h-5" />
@@ -326,7 +335,7 @@ const ProductDetail: React.FC = () => {
         </div>
 
         {/* Related Products */}
-        <div className="mt-16">
+        {/* <div className="mt-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">You might also like</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {products
@@ -354,7 +363,7 @@ const ProductDetail: React.FC = () => {
                 </Link>
               ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

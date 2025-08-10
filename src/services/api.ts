@@ -48,10 +48,6 @@ export async function fetchProductDetail(productId: string): Promise<Product> {
     const response = await apiRequest(ENDPOINTS.PRODUCT_DETAIL(productId));
     const product = await response.json();
     
-    if (product.colors && !product.color) {
-        product.color = product.colors;
-    }
-    
     return product;
 }
 
@@ -67,7 +63,7 @@ export async function fetchProducts(page: number = 1): Promise<{ results: Produc
     
     const processedResults = data.results.map(product => ({
         ...product,
-        color: product.colors || product.color || [],
+        color: product.colors || [],
     }));
     
     return {
@@ -77,19 +73,12 @@ export async function fetchProducts(page: number = 1): Promise<{ results: Produc
     };
 }
 
-export async function fetchAllProducts(): Promise<{ results: Product[], totalCount: number; }> {
+export async function fetchAllProducts(): Promise<Product[]> {
     const response = await apiRequest(ENDPOINTS.GET_ALL_PRODUCTS);
-    const data: GetProductsResponse = await response.json();
+    const data: Product[] = await response.json();
     
-    const processedResults = data.results.map(product => ({
-        ...product,
-        color: product.colors || product.color || [],
-    }));
+    return data
     
-    return {
-        results: processedResults,
-        totalCount: data.count,
-    };
 }
 
 export async function createProduct(productData: CreateProductRequest): Promise<Product> {
@@ -110,9 +99,9 @@ export async function createProduct(productData: CreateProductRequest): Promise<
         formData.append('skus', JSON.stringify(productData.skus));
     }
     
-    if (productData.images && productData.images.length > 0) {
-        productData.images.forEach((image) => {
-            formData.append('images', image);
+    if (productData.image_files && productData.image_files.length > 0) {
+        productData.image_files.forEach((image) => {
+            formData.append('image_files', image);
         });
     }
     
@@ -121,31 +110,30 @@ export async function createProduct(productData: CreateProductRequest): Promise<
 }
 
 export async function updateProduct(productId: string, productData: Partial<UpdateProductRequest>): Promise<Product> {
-    if (productData.images && productData.images.length > 0) {
-        const formData = new FormData();
-        
-        Object.keys(productData).forEach(key => {
-            if (key === 'images') return;
-            if (key === 'skus') {
-                formData.append(key, JSON.stringify(productData[key]));
-            } else {
-                formData.append(key, String(productData[key]));
-            }
-        });
-        
-        productData.images.forEach((image) => {
-            formData.append('images', image);
-        });
-        
-        const response = await apiFormDataRequest(ENDPOINTS.UPDATE_PRODUCT(productId), formData, 'PUT');
-        return await response.json();
-    } else {
-        const response = await apiRequest(ENDPOINTS.UPDATE_PRODUCT(productId), {
-            method: 'PUT',
-            body: JSON.stringify(productData),
-        });
-        return await response.json();
-    }
+    if (productData.image_files && productData.image_files.length > 0) {
+    const formData = new FormData();
+
+    Object.keys(productData).forEach(key => {
+        if (key === 'image_files') return; // we'll handle files separately
+        if (key === 'skus') {
+            formData.append(key, JSON.stringify(productData[key]));
+        } else {
+            formData.append(key, String(productData[key]));
+        }
+    });
+
+    productData.image_files.forEach((file: File) => {
+        formData.append('image_files', file); // key must match backend expectation
+    });
+
+    const response = await apiFormDataRequest(
+        ENDPOINTS.UPDATE_PRODUCT(productId),
+        formData,
+        'PUT'
+    );
+    return await response.json();
+}
+
 }
 
 export async function deleteProduct(productId: string): Promise<void> {

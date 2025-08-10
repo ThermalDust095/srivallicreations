@@ -15,7 +15,7 @@ const productSchema = z.object({
   // .refine((files) => Array.from(files).every(file => ACCEPTED_IMAGE_TYPES.includes(file.type)), "Only JPEG, PNG, GIF, and WebP images are allowed")
   // .transform((files) => Array.from(files))
   // .nullable(),
-  images: z.array(z.instanceof(File))
+  image_files: z.array(z.instanceof(File))
     .nonempty("At least one image is required")
     .refine(files => files.every(file => ACCEPTED_IMAGE_TYPES.includes(file.type)), 
             "Only JPEG, PNG, GIF, and WebP images are allowed"),
@@ -25,7 +25,7 @@ const productSchema = z.object({
       color: z.string().min(1, "Color is required"),
       stock: z.number().min(0, "Stock cannot be negative"),
     })
-  ).nonempty("At least one SKU is required"),
+  ).nonempty("At least one SKU is required")
 });
 
 export default productSchema;

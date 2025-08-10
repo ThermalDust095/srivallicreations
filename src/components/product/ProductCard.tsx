@@ -14,7 +14,7 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
   const [isLiked, setIsLiked] = useState(false);
-  const [selectedSize, setSelectedSize] = useState(product.size?.[0] || '');
+  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || '');
   const [selectedColor, setSelectedColor] = useState((product.colors || [])[0] || '');
   const { addToCart } = useProducts();
 
@@ -62,7 +62,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
       {/* Image Container */}
       <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
         <img
-          src={product.images?.[0] || '/placeholder-image.jpg'}
+          src={product.primary_image || '/placeholder-image.jpg'}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
@@ -127,10 +127,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
         </div>
 
         {/* Size Selection */}
-        {product.size && product.size.length > 0 && (
+        {product.sizes && product.sizes.length > 0 && (
           <div className="mb-2 sm:mb-3">
             <div className="flex items-center space-x-1">
-              {product.size.slice(0, 4).map((size) => (
+              {product.sizes.slice(0, 4).map((size) => (
                 <button
                   key={size}
                   onClick={(e) => {
@@ -150,8 +150,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
                   {size}
                 </button>
               ))}
-              {product.size.length > 4 && (
-                <span className="text-xs text-gray-400 ml-1">+{product.size.length - 4}</span>
+              {product.sizes.length > 4 && (
+                <span className="text-xs text-gray-400 ml-1">+{product.sizes.length - 4}</span>
               )}
             </div>
           </div>
