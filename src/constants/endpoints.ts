@@ -2,8 +2,9 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localho
 
 export const ENDPOINTS = {
     // Auth endpoints (if you have them)
-    LOGIN: "/auth/login",
-    REGISTER: "/auth/register",
+    SEND_OTP: "/api/users/send-otp/",
+    VERIFY_OTP: "/api/users/verify-otp/",
+    USER_PROFILE: "/api/users/me/",
     
     // Product endpoints
     GET_PRODUCTS: "/api/products/product/",

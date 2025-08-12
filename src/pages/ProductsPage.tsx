@@ -9,7 +9,7 @@ import showToast from '../components/ui/Toast';
 const ProductsPage: React.FC = () => {
   const { products, setProducts } = useProducts();
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [priceRange, setPriceRange] = useState([0, 100000]);
   const [sortBy, setSortBy] = useState('name');
   
   const [totalCount, setTotalCount] = useState(0);
@@ -129,8 +129,7 @@ const ProductsPage: React.FC = () => {
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                     <input
                       type="range"
-                      min="0"
-                      max="200"
+                      min={priceRange[0]}
                       value={priceRange[0]}
                       onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
                       className="flex-1 w-full"
@@ -138,7 +137,7 @@ const ProductsPage: React.FC = () => {
                     <input
                       type="range"
                       min="0"
-                      max="200"
+                      max={priceRange[1]}
                       value={priceRange[1]}
                       onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
                       className="flex-1 w-full"

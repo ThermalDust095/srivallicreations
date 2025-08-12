@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Product, CartItem, CreateProductFormData } from '../types/Product';
+import { Product, CartItem } from '../types/Product';
 import { createProduct as apiCreateProduct, updateProduct as apiUpdateProduct, deleteProduct as apiDeleteProduct } from '../services/api';
 import { CreateProductRequest } from '../types/apiTypes';
 import showToast from '../components/ui/Toast';

@@ -1,6 +1,9 @@
 import { API_BASE_URL, ENDPOINTS } from "../constants/endpoints";
 import { Product } from "../types/Product";
-import { GetProductsResponse, CreateProductRequest, UpdateProductRequest, ApiError } from "../types/apiTypes";
+import { GetProductsResponse, CreateProductRequest, UpdateProductRequest, ApiError, VerifyOTPResponse } from "../types/apiTypes";
+import { LoginCredentials, User } from "../types/Auth";
+
+// const refreshToken = sessionStorage.getItem('refreshToken')
 
 const handleApiError = async (response: Response): Promise<never> => {
     let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -16,9 +19,17 @@ const handleApiError = async (response: Response): Promise<never> => {
 };
 
 const apiRequest = async (url: string, options: RequestInit = {}): Promise<Response> => {
+    const token = localStorage.getItem('accessToken');
+    const validToken = token && token !== 'undefined' && token !== 'null' && token.trim() !== '';
+
+    console.log('Sending request to:', url);
+    console.log('Token:', token);
+    console.log('Adding Authorization header?', validToken);
+
     const response = await fetch(`${API_BASE_URL}${url}`, {
         headers: {
             'Content-Type': 'application/json',
+            ...(validToken ? {'Authorization': `Bearer ${token}`} : {}),
             ...options.headers,
         },
         ...options,
@@ -148,4 +159,30 @@ export async function patchProduct(productId: string, productData: Partial<Updat
         body: JSON.stringify(productData),
     });
     return await response.json();
+}
+
+export async function loginWithOTP(phone: string): Promise<Response>{
+    const response = await apiRequest(ENDPOINTS.SEND_OTP, {
+        method: 'POST',
+        body: JSON.stringify({ phone: phone }),
+    });
+
+    return await response;
+}
+
+export async function verifyLoginOTP(credentials: LoginCredentials): Promise<VerifyOTPResponse>{
+    const response = await apiRequest(ENDPOINTS.VERIFY_OTP, {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+    });
+
+    return await response.json()
+}
+
+export async function fetchUserProfile(): Promise<User>{
+    const response = await apiRequest(ENDPOINTS.USER_PROFILE, {
+        method: 'GET',
+    })
+
+    return await response.json()
 }

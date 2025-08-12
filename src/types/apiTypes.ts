@@ -32,3 +32,9 @@ export interface ApiError {
     message?: string;
     [key: string]: any;
 }
+
+export interface VerifyOTPResponse{
+    message: string, 
+    refresh_token: string, 
+    access_token: string
+}

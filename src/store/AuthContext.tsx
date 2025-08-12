@@ -1,93 +1,117 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { User, LoginCredentials, RegisterData, AuthContextType } from '../types/Auth';
+import { User, LoginCredentials, AuthContextType } from '../types/Auth';
+import showToast from '../components/ui/Toast';
+import { loginWithOTP, verifyLoginOTP, fetchUserProfile } from '../services/api';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const mockUsers: User[] = [
-  {
-    id: '1',
-    email: 'admin@srivalli.com',
-    name: 'Admin User',
-    role: 'admin',
-    avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    email: 'customer@example.com',
-    name: 'Jane Customer',
-    role: 'customer',
-    avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg',
-    createdAt: new Date().toISOString(),
-  }
-];
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [sentOTP, setSentOTP] = useState(false);
+  const [OTPExpiry, setOTPExpiry] = useState<number | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
+    const storedAccessToken = localStorage.getItem('accessToken');
+    const storedRefreshToken = localStorage.getItem('refreshToken');
 
-  const login = async (credentials: LoginCredentials): Promise<void> => {
-    setIsLoading(true);
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const foundUser = mockUsers.find(u => u.email === credentials.email);
-    
-    if (!foundUser) {
-      setIsLoading(false);
-      throw new Error('User not found');
+   if (storedAccessToken && storedAccessToken !== 'undefined' && storedAccessToken !== "null") {
+    setAccessToken(storedAccessToken);
+  }
+    if (storedRefreshToken && storedRefreshToken !== 'undefined' && storedAccessToken !== "null") {
+      setRefreshToken(storedRefreshToken);
+  }
+  }, [])
+
+  useEffect(() => {
+    if (accessToken && accessToken != "undefined" && accessToken != "null"){
+      localStorage.setItem('accessToken', accessToken);
     }
-    
-    if (credentials.password !== 'password123') {
-      setIsLoading(false);
-      throw new Error('Invalid password');
+    if (refreshToken && refreshToken != "undefined" && refreshToken != "null"){
+      localStorage.setItem('refreshToken', refreshToken)
     }
-    
-    setUser(foundUser);
-    localStorage.setItem('currentUser', JSON.stringify(foundUser));
-    setIsLoading(false);
+  
+  }, [accessToken, refreshToken])
+
+  useEffect(() => {
+    const init = async() => {
+      if (!accessToken) return;
+      try{
+       const userData = await fetchUserProfile();
+       userData.phone_verified ? setUser(userData) : setUser(null)
+      }
+      catch(err: any){
+        showToast.error(err.message)
+      }
+    }
+
+    init();
+
+  }, [accessToken])
+
+    const startOTPExpiry = () => {
+    setOTPExpiry(Date.now() + 120000); // 2 min from now
   };
 
-  const register = async (data: RegisterData): Promise<void> => {
+  useEffect(() => {
+    if (!OTPExpiry) return;
+
+    const interval = setInterval(() => {
+      const totalSeconds = Math.max(
+        0,
+        Math.ceil((OTPExpiry - Date.now()) / 1000)
+      );
+
+      if (totalSeconds <= 0) {
+        setSentOTP(false);
+        setOTPExpiry(null);
+        clearInterval(interval);
+      } else {
+        // This just forces a re-render without changing OTPExpiry
+        setOTPExpiry((prev) => prev);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [OTPExpiry, setOTPExpiry, setSentOTP]);
+
+  const sendOTP = async (credentials: LoginCredentials): Promise<void> => {
     setIsLoading(true);
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (data.password !== data.confirmPassword) {
+
+    try{
+      let res = await loginWithOTP(credentials.phone);
+      if(res.ok){
+        setSentOTP(true)
+        startOTPExpiry();
+      }
+    }catch(err: any){
+      showToast.error(`Error Occured: ${err.message}`)
+    }finally{
       setIsLoading(false);
-      throw new Error('Passwords do not match');
     }
-    
-    const existingUser = mockUsers.find(u => u.email === data.email);
-    if (existingUser) {
-      setIsLoading(false);
-      throw new Error('User already exists');
-    }
-    
-    const newUser: User = {
-      id: Date.now().toString(),
-      email: data.email,
-      name: data.name,
-      role: 'customer',
-      createdAt: new Date().toISOString(),
-    };
-    
-    mockUsers.push(newUser);
-    setUser(newUser);
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
-    setIsLoading(false);
   };
+
+
+  const verifyOTP = async (credentials: LoginCredentials): Promise<void> =>{
+    setIsLoading(true);
+    try{
+      let res = await verifyLoginOTP(credentials);
+      setAccessToken(res.access_token)
+      setRefreshToken(res.refresh_token)
+      
+    }catch(err: any){
+      showToast.error(`Error Occured: ${err.message}`)
+    }finally{
+      setIsLoading(false);
+    }
+  }
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('currentUser');
+    localStorage.removeItem('accessToken');
   };
 
   const isAdmin = () => user?.role === 'admin';
@@ -97,11 +121,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <AuthContext.Provider value={{
       user,
       isLoading,
-      login,
-      register,
+      sendOTP,
       logout,
       isAdmin,
       isAuthenticated,
+      sentOTP,
+      setSentOTP,
+      verifyOTP,
+      OTPExpiry,
+      setOTPExpiry,
+      accessToken
+
     }}>
       {children}
     </AuthContext.Provider>

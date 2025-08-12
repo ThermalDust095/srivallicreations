@@ -7,14 +7,14 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   helperText?: string;
 }
 
-const Input: React.FC<InputProps> = ({
+const Input: React.FC<InputProps> = React.forwardRef<HTMLInputElement, InputProps>(({
   label,
   error,
   icon,
   helperText,
   className = '',
   ...props
-}) => {
+}, ref) => {
   return (
     <div className="space-y-2">
       {label && (
@@ -29,6 +29,7 @@ const Input: React.FC<InputProps> = ({
           </div>
         )}
         <input
+          ref={ref}
           className={`
             w-full px-4 py-3 border rounded-lg transition-colors
             focus:ring-2 focus:ring-pink-500 focus:border-transparent
@@ -47,6 +48,6 @@ const Input: React.FC<InputProps> = ({
       )}
     </div>
   );
-};
+});
 
 export default Input;

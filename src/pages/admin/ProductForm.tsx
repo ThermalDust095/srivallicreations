@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import {useForm, useFieldArray} from 'react-hook-form';
 import { useProducts } from '../../store/ProductContext';
