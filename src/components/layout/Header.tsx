@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Settings, Heart, User, LogOut, Menu, X } from 'lucide-react';
+import { ShoppingBag, Settings, Heart, User, LogOut, Menu, X, Package } from 'lucide-react';
 import { useProducts } from '../../store/ProductContext';
 import { useAuth } from '../../store/AuthContext';
 import LoginForm from '../forms/LoginForm';
@@ -84,13 +84,34 @@ const Header: React.FC = () => {
                     </div>
                     
                     {isAdmin() && (
+                      <>
+                        <Link
+                          to="/admin"
+                          className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <Settings className="w-4 h-4" />
+                          <span>Admin Dashboard</span>
+                        </Link>
+                        <Link
+                          to="/admin/orders"
+                          className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <Package className="w-4 h-4" />
+                          <span>Manage Orders</span>
+                        </Link>
+                      </>
+                    )}
+
+                    {!isAdmin() && (
                       <Link
-                        to="/admin"
+                        to="/orders"
                         className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         onClick={() => setShowUserMenu(false)}
                       >
-                        <Settings className="w-4 h-4" />
-                        <span>Admin Dashboard</span>
+                        <Package className="w-4 h-4" />
+                        <span>My Orders</span>
                       </Link>
                     )}
                     

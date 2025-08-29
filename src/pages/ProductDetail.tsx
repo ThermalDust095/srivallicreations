@@ -6,6 +6,7 @@ import { Product } from '../types/Product';
 import { fetchProductDetail } from '../services/api';
 import { PageLoading } from '../components/layout/Loading';
 import showToast from '../components/ui/Toast';
+import WhatsAppChat from '../components/ui/WhatsAppChat';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -365,6 +366,9 @@ const ProductDetail: React.FC = () => {
           </div>
         </div> */}
       </div>
+
+      {/* WhatsApp Chat Button */}
+      <WhatsAppChat />
     </div>
   );
 };

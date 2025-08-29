@@ -9,6 +9,7 @@ import showToast from '../components/ui/Toast';
 import CartItem from '../components/cart/CartItem';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import WhatsAppChat from '../components/ui/WhatsAppChat';
 
 const Cart: React.FC = () => {
   const { cart, getTotalPrice, clearCart } = useProducts();
@@ -115,6 +116,9 @@ const Cart: React.FC = () => {
           onSubmit={handleDeliverySubmit}
         />
       )}
+
+      {/* WhatsApp Chat Button */}
+      <WhatsAppChat />
     </div>
   );
 };
