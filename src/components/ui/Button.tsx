@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -7,6 +8,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   icon?: React.ReactNode;
   fullWidth?: boolean;
+  as?: 'button' | 'link';
+  to?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -15,6 +18,8 @@ const Button: React.FC<ButtonProps> = ({
   loading = false,
   icon,
   fullWidth = false,
+  as = 'button',
+  to,
   children,
   className = '',
   disabled,
@@ -38,6 +43,34 @@ const Button: React.FC<ButtonProps> = ({
 
   const isDisabled = disabled || loading;
 
+  const content = (
+    <>
+      {loading ? (
+        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+      ) : icon ? (
+        <span className="mr-2">{icon}</span>
+      ) : null}
+      {children}
+    </>
+  );
+
+  if (as === 'link' && to) {
+    return (
+      <Link
+        to={to}
+        className={`
+          ${baseClasses} 
+          ${variantClasses[variant]} 
+          ${sizeClasses[size]} 
+          ${fullWidth ? 'w-full' : ''}
+          ${className}
+        `}
+      >
+        {content}
+      </Link>
+    );
+  }
+
   return (
     <button
       className={`
@@ -50,12 +83,7 @@ const Button: React.FC<ButtonProps> = ({
       disabled={isDisabled}
       {...props}
     >
-      {loading ? (
-        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-      ) : icon ? (
-        <span className="mr-2">{icon}</span>
-      ) : null}
-      {children}
+      {content}
     </button>
   );
 };

@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Plus, Edit, Trash2, Eye, BarChart3 } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, Eye, BarChart3, ShoppingCart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useProducts } from '../../store/ProductContext';
+import { useOrders } from '../../store/OrderContext';
 import { Product } from '../../types/Product';
 import ProductForm from './ProductForm';
 import { fetchAllProducts } from '../../services/api';
 
 const AdminDashboard: React.FC = () => {
   const { products, setProducts, deleteProduct } = useProducts();
+  const { orders } = useOrders();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const totalProducts = products.length;
   const inStockProducts = products.filter(p => p.inStock).length;
   const featuredProducts = products.filter(p => p.featured).length;
+  const totalOrders = orders.length;
+  const pendingOrders = orders.filter(o => o.status === 'pending').length;
 
   useEffect(() => {
     const init = async () => {
@@ -86,8 +91,61 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center">
               <div className="p-2 bg-pink-100 rounded-lg">
-                <BarChart3 className="w-6 h-6 text-pink-600" />
+                <ShoppingCart className="w-6 h-6 text-pink-600" />
               </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Orders</p>
+                <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="space-y-3">
+              <Link
+                to="/admin/orders"
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  <Package className="w-5 h-5 text-blue-600" />
+                  <span className="font-medium">Manage Orders</span>
+                </div>
+                <span className="text-sm text-gray-500">{pendingOrders} pending</span>
+              </Link>
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  <Plus className="w-5 h-5 text-green-600" />
+                  <span className="font-medium">Add New Product</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+            <div className="space-y-3">
+              {orders.slice(0, 3).map((order) => (
+                <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium text-sm">Order #{order.id.slice(-6).toUpperCase()}</div>
+                    <div className="text-xs text-gray-500">{order.deliveryAddress.fullName}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium">₹{order.totalAmount.toFixed(2)}</div>
+                    <div className="text-xs text-gray-500">{order.status}</div>
+                  </div>
+                </div>
+              ))}
+              {orders.length === 0 && (
+                <p className="text-sm text-gray-500 text-center py-4">No recent orders</p>
+              )}
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProducts } from '../store/ProductContext';
 import { useAuth } from '../store/AuthContext';
+import { useOrders } from '../store/OrderContext';
 import DeliveryAddressForm from '../components/Forms/DeliveryAddressForm';
 import { DeliveryAddressFormData } from '../schemas/authSchemas';
 import showToast from '../components/ui/Toast';
@@ -14,6 +15,7 @@ import WhatsAppChat from '../components/ui/WhatsAppChat';
 const Cart: React.FC = () => {
   const { cart, getTotalPrice, clearCart } = useProducts();
   const { user } = useAuth();
+  const { createOrder } = useOrders();
   const [showDeliveryForm, setShowDeliveryForm] = React.useState(false);
   const total = getTotalPrice();
 
@@ -26,11 +28,25 @@ const Cart: React.FC = () => {
   };
 
   const handleDeliverySubmit = async (data: DeliveryAddressFormData) => {
-    // Here you would typically save the address and process the order
-    console.log('Delivery address:', data);
-    showToast.success('Order placed successfully! We will deliver to your address soon.');
-    clearCart();
-    setShowDeliveryForm(false);
+    try {
+      const orderData = {
+        items: cart.map(item => ({
+          productId: item.id,
+          size: item.selectedSize,
+          color: item.selectedColor,
+          quantity: item.quantity,
+        })),
+        deliveryAddress: data,
+        notes: 'Order placed from cart',
+      };
+
+      await createOrder(orderData);
+      showToast.success('Order placed successfully! We will deliver to your address soon.');
+      clearCart();
+      setShowDeliveryForm(false);
+    } catch (error) {
+      showToast.error('Failed to place order. Please try again.');
+    }
   };
 
   if (cart.length === 0) {
