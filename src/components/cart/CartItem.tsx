@@ -1,35 +1,25 @@
 import React from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
-import { CartItem as CartItemType } from '../../types/Product';
-import { useProducts } from '../../store/ProductContext';
+import { CartItem as CartItemType } from '../../types/Cart'; // <-- 2. Use the new Cart typesimport { useProducts } from '../../store/ProductContext';
 import showToast from '../ui/Toast';
 import Button from '../ui/Button';
+
+import { useCart } from '../../store/CartContext';
 
 interface CartItemProps {
   item: CartItemType;
 }
 
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
-  const { updateCartQuantity, removeFromCart } = useProducts();
+  const { updateQuantity, removeFromCart } = useCart();
 
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity <= 0) {
-      removeFromCart(item.id, item.selectedSize, item.selectedColor);
+      removeFromCart(item.product_sku.product_id, item.product_sku.color, item.product_sku.size);
       return;
     }
 
-    const maxStock = item.skus.find(
-      sku =>
-        sku.size === item.selectedSize &&
-        sku.color === item.selectedColor
-    )?.stock || 0;
-
-    if (newQuantity > maxStock) {
-      showToast.error(`Only ${maxStock} items available`);
-      return;
-    }
-
-    updateCartQuantity(item.id, item.selectedSize, item.selectedColor, newQuantity);
+    updateQuantity(item.id, item.product_sku.product_id, item.product_sku.color, item.product_sku.size, newQuantity);
   };
 
   return (
@@ -37,18 +27,18 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
       <div className="flex items-center space-x-4">
         {/* Product Image */}
         <img
-          src={item.images?.[0] || '/placeholder-image.jpg'}
-          alt={item.name}
+          src={item.product_sku.primary_image || '/placeholder-image.jpg'}
+          alt={item.product_sku.name}
           className="w-20 h-20 object-cover rounded-lg"
         />
 
         {/* Product Details */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 truncate">{item.name}</h3>
-          <p className="text-sm text-gray-500 mt-1">{item.category}</p>
+          <h3 className="text-lg font-semibold text-gray-900 truncate">{item.product_sku.name}</h3>
+          {/* <p className="text-sm text-gray-500 mt-1">{item.category}</p> */}
           <div className="flex items-center space-x-4 mt-2">
-            <span className="text-sm text-gray-600">Size: {item.selectedSize || 'N/A'}</span>
-            <span className="text-sm text-gray-600">Color: {item.selectedColor || 'N/A'}</span>
+            <span className="text-sm text-gray-600">Size: {item.product_sku.size || 'N/A'}</span>
+            <span className="text-sm text-gray-600">Color: {item.product_sku.color || 'N/A'}</span>
           </div>
         </div>
 
@@ -75,15 +65,15 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
 
         {/* Price */}
         <div className="text-right">
-          <p className="text-lg font-semibold text-gray-900">₹{(item.price * item.quantity).toFixed(2)}</p>
-          <p className="text-sm text-gray-500">₹{item.price ? Number(item.price).toFixed(2) : '0.00'} each</p>
+          <p className="text-lg font-semibold text-gray-900">₹{(item.product_sku.price * item.quantity).toFixed(2)}</p>
+          <p className="text-sm text-gray-500">₹{item.product_sku.price ? Number(item.product_sku.price).toFixed(2) : '0.00'} each</p>
         </div>
 
         {/* Remove Button */}
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => removeFromCart(item.id, item.selectedSize, item.selectedColor)}
+          onClick={() => removeFromCart(item.product_sku.product_id, item.product_sku.color, item.product_sku.size)}
           className="text-red-400 hover:text-red-600 p-2"
         >
           <Trash2 className="w-5 h-5" />

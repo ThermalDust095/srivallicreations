@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useProducts } from '../store/ProductContext';
+import { useCart } from '../store/CartContext';
 import { useAuth } from '../store/AuthContext';
 import { useOrders } from '../store/OrderContext';
 import DeliveryAddressForm from '../components/Forms/DeliveryAddressForm';
@@ -13,14 +13,14 @@ import Button from '../components/ui/Button';
 import WhatsAppChat from '../components/ui/WhatsAppChat';
 
 const Cart: React.FC = () => {
-  const { cart, getTotalPrice, clearCart } = useProducts();
+  const { cart } = useCart();
   const { user } = useAuth();
   const { createOrder } = useOrders();
   const [showDeliveryForm, setShowDeliveryForm] = React.useState(false);
-  const total = getTotalPrice();
+  // const total = getTotalPrice();
 
   const handleCheckout = () => {
-    if (cart.length === 0) {
+    if (cart?.items.length === 0) {
       showToast.error('Your cart is empty');
       return;
     }
@@ -30,26 +30,26 @@ const Cart: React.FC = () => {
   const handleDeliverySubmit = async (data: DeliveryAddressFormData) => {
     try {
       const orderData = {
-        items: cart.map(item => ({
+        items: cart?.items.map(item => ({
           productId: item.id,
-          size: item.selectedSize,
-          color: item.selectedColor,
+          size: item.product_sku.size,
+          color: item.product_sku.color,
           quantity: item.quantity,
         })),
         deliveryAddress: data,
         notes: 'Order placed from cart',
       };
 
-      await createOrder(orderData);
+      // await createOrder(orderData);
       showToast.success('Order placed successfully! We will deliver to your address soon.');
-      clearCart();
+      // clearCart();
       setShowDeliveryForm(false);
     } catch (error) {
       showToast.error('Failed to place order. Please try again.');
     }
   };
 
-  if (cart.length === 0) {
+  if (cart?.items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -91,9 +91,9 @@ const Cart: React.FC = () => {
         <Card padding="none" className="overflow-hidden">
           {/* Cart Items */}
           <div>
-            {cart.map((item, index) => (
+            {cart?.items.map((item, index) => (
               <CartItem 
-                key={`${item.id}-${item.selectedSize}-${item.selectedColor}-${index}`}
+                key={`${item.id}-${item.product_sku.size}-${item.product_sku.color}-${index}`}
                 item={item}
               />
             ))}
@@ -103,13 +103,13 @@ const Cart: React.FC = () => {
           <div className="bg-gray-50 p-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-lg font-semibold text-gray-900">Total</span>
-              <span className="text-2xl font-bold text-gray-900">₹{total.toFixed(2)}</span>
+              <span className="text-2xl font-bold text-gray-900">₹{cart?.grand_total.toFixed(2)}</span>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 variant="outline"
-                onClick={clearCart}
+                // onClick={clearCart}
                 className="flex-1"
               >
                 Clear Cart

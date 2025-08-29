@@ -7,12 +7,15 @@ import { fetchProductDetail } from '../services/api';
 import { PageLoading } from '../components/layout/Loading';
 import showToast from '../components/ui/Toast';
 import WhatsAppChat from '../components/ui/WhatsAppChat';
+import { useCart } from '../store/CartContext';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { products, addToCart } = useProducts();
+  const { products } = useProducts();
   const [isLoading, setLoading] = useState<boolean>(true);
   const [product, setProduct] = useState<Product | null>(null);
+
+  const { addToCart } = useCart();
 
   const [selectedSize, setSelectedSize] = useState(products[0]?.skus?.[0]?.size || '');
   const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] || '');
@@ -106,7 +109,7 @@ const ProductDetail: React.FC = () => {
       return;
     }
 
-    addToCart(product, selectedSize, selectedColor, quantity, availableStock);
+    addToCart(product.id, selectedSize, selectedColor, quantity);
     showToast.success('Added to cart successfully!');
     showToast.dismiss();
   };

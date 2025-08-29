@@ -5,67 +5,53 @@ import ProductGrid from '../components/product/ProductGrid';
 import { ProductGridLoading } from '../components/layout/Loading';
 import { fetchProducts } from '../services/api';
 import showToast from '../components/ui/Toast';
+import { Pagination, Stack } from '@mui/material';
+
+
+const ITEMS_PER_PAGE = 10;
 
 const ProductsPage: React.FC = () => {
   const { products, setProducts } = useProducts();
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [priceRange, setPriceRange] = useState([0, 100000]);
-  const [sortBy, setSortBy] = useState('name');
   
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   
+  const [currentPage, setCurrentPage] = useState(1)
   
-  const [showFilters, setShowFilters] = useState(false);
-
-  const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
-
-  useEffect(() => {
-    const init = async () => {
+useEffect(() => {
+    const loadProducts = async () => {
       setIsLoading(true);
-      setProducts([]);
+      try {
+        // Pass all filter and pagination state to your fetch function
+        const data = await fetchProducts(currentPage);
+        
+        setProducts(data.results);
+        setTotalCount(data.totalCount)
 
-      try{
-        const {results, totalCount} = await fetchProducts(1);
-        setProducts(results);
-        setTotalCount(totalCount);
-      }
-
-      catch (err) {
+      } catch (err) {
         showToast.error('Failed to fetch products');
         console.error('Error fetching products:', err);
       } finally {
         setIsLoading(false);
       }
-    }
+    };
 
-    init();
-  }, [setProducts]);
+    loadProducts();
+  }, [currentPage]); // Dependency array is the key
 
-  const filteredProducts = useMemo(() => {
-    let filtered = products.filter(product => {
-      const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-      const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
-      
-      return  matchesCategory && matchesPrice;
-    });
+  // --- Event Handlers ---
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setCurrentPage(value);
+  };
 
-    // Sort products
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'price-low':
-          return a.price - b.price;
-        case 'price-high':
-          return b.price - a.price;
-        case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        default:
-          return a.name.localeCompare(b.name);
-      }
-    });
+  const pageCount = useMemo(
+    () => Math.ceil(totalCount / ITEMS_PER_PAGE),
+    [totalCount]
+);
 
-    return filtered;
-  }, [products, selectedCategory, priceRange, sortBy]);
+
+  console.log(`page: ${pageCount}, total: ${totalCount}`)
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -76,89 +62,31 @@ const ProductsPage: React.FC = () => {
           <p className="text-lg text-gray-600">Discover amazing pieces that define your style</p>
         </div>
 
-        {/* Search and Filter Bar */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
-
-            {/* Category Filter */}
-            <div className="flex-1 sm:flex-none">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full sm:w-auto px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              >
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Sort */}
-            <div className="flex-1 sm:flex-none">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full sm:w-auto px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              >
-                <option value="name">Sort by Name</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="newest">Newest First</option>
-              </select>
-            </div>
-
-            {/* Filter Toggle */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center justify-center space-x-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              <span>Filters</span>
-            </button>
-          </div>
-
-          {/* Advanced Filters */}
-          {showFilters && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="grid grid-cols-1 gap-6">
-                {/* Price Range */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Price Range: ₹{priceRange[0]} - ₹{priceRange[1]}
-                  </label>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                    <input
-                      type="range"
-                      min={priceRange[0]}
-                      value={priceRange[0]}
-                      onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
-                      className="flex-1 w-full"
-                    />
-                    <input
-                      type="range"
-                      min="0"
-                      max={priceRange[1]}
-                      value={priceRange[1]}
-                      onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                      className="flex-1 w-full"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-gray-600">
-            Showing {filteredProducts.length} of {totalCount} products
+            Showing {products.length} of {totalCount} products
           </p>
         </div>
 
 
         {/* Products Grid */}
-        {isLoading ? <ProductGridLoading/> : <ProductGrid products={filteredProducts} />}
+        {isLoading ? <ProductGridLoading/> : <ProductGrid products={products} />}
+
+
+          {/* 6. Add the Pagination Component */}
+        <Stack spacing={2} alignItems="center" sx={{ mt: 4 }}>
+          {pageCount > 1 && (
+            <Pagination
+              count={pageCount}
+              page={currentPage}
+              onChange={handlePageChange}
+              color="secondary"
+              size="large"
+            />
+          )}
+        </Stack>
+
       </div>
     </div>
   );

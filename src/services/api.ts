@@ -18,7 +18,7 @@ const handleApiError = async (response: Response): Promise<never> => {
     throw new Error(errorMessage);
 };
 
-const apiRequest = async (url: string, options: RequestInit = {}): Promise<Response> => {
+export const apiRequest = async (url: string, options: RequestInit = {}): Promise<Response> => {
     const token = localStorage.getItem('accessToken');
     const validToken = token && token !== 'undefined' && token !== 'null' && token.trim() !== '';
 
@@ -43,8 +43,14 @@ const apiRequest = async (url: string, options: RequestInit = {}): Promise<Respo
 };
 
 const apiFormDataRequest = async (url: string, formData: FormData, method: string = 'POST'): Promise<Response> => {
+    const token = localStorage.getItem('accessToken');
+    const validToken = token && token !== 'undefined' && token !== 'null' && token.trim() !== '';
+
     const response = await fetch(`${API_BASE_URL}${url}`, {
         method: method,
+        headers: {
+            ...(validToken ? {'Authorization': `Bearer ${token}`} : {}),
+        },
         body: formData,
     });
 

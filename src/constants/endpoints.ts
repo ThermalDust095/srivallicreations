@@ -13,4 +13,7 @@ export const ENDPOINTS = {
     CREATE_PRODUCT: "/api/products/product-create/",
     UPDATE_PRODUCT: (productId: string): string => `/api/products/product/${productId}/`,
     DELETE_PRODUCT: (productId: string): string => `/api/products/product/${productId}/`,
+
+    CART: "/api/cart/"
+
 } as const;

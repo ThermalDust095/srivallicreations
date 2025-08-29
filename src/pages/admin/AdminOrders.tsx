@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Package, Search, Filter, Download, Eye, Edit } from 'lucide-react';
+import React, { useState } from 'react';
+import { Package, Search, Download, Eye, Edit } from 'lucide-react';
 import { useOrders } from '../../store/OrderContext';
 import { Order } from '../../types/Order';
 import Card from '../../components/ui/Card';
