@@ -23,3 +23,14 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+
+#Backend
+
+venv/
+__pycache__/
+*.pyc
+*.sqlite3
+*.env
+/apps/*/migrations/
+*/media/*

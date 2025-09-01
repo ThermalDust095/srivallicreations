@@ -82,7 +82,7 @@ useEffect(() => {
               page={currentPage}
               onChange={handlePageChange}
               color="secondary"
-              size="large"
+              size="                    "
             />
           )}
         </Stack>
